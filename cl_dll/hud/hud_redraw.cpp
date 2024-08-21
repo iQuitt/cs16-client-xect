@@ -147,6 +147,7 @@ int CHud :: Redraw( float flTime, int intermission )
 		i = grgLogoFrame[iFrame] - 1;
 
 		SPR_DrawAdditive(i, x, y, NULL);
+		
 	}
 
 	return 1;

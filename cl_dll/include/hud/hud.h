@@ -40,6 +40,12 @@
 #define	HUDELEM_ACTIVE	1
 #define CHudMsgFunc(x) int MsgFunc_##x(const char *pszName, int iSize, void *buf)
 #define CHudUserCmd(x) void UserCmd_##x()
+#define TMSG( x ) !strcmp( szMessage, x )
+#define RMSG( x ) !strcmp( szMessage, x )
+// #define TEAM_SP 3
+#define WIN_TEAM_TR 2
+#define WIN_TEAM_CT 1
+#define WIN_TEAM_NONE 0
 
 class RGBA
 {
@@ -702,6 +708,32 @@ public:
 	CHudMsgFunc(BotVoice);
 };
 
+
+//
+//-----------------------------------------------------
+//
+
+
+class CHudWinImage : public CHudBase
+{
+
+  public:
+	int Init( void );
+	int VidInit( void );
+	int Think( float flTimer );
+	int Draw( );
+	float m_flEndTime;
+	int bWinningTeam;
+	int IMG, IMG2;
+	cvar_t *hud_winimage;
+
+
+  private:
+	float left, right, centerx, centery;
+};
+
+
+
 //
 //-----------------------------------------------------
 //
@@ -965,6 +997,7 @@ public:
 	CHudNVG         m_NVG;
 	CHudRadar       m_Radar;
 	CHudSpectatorGui m_SpectatorGui;
+	CHudWinImage m_WinImage;
 
 	// user messages
 	CHudMsgFunc(Damage);

@@ -31,7 +31,6 @@
 #include "demo_api.h"
 #include "vgui_parser.h"
 #include "rain.h"
-
 #include "camera.h"
 
 
@@ -242,6 +241,8 @@ void CHud :: Init( void )
 	m_ProgressBar.Init();
 	m_Menu.Init();
 	m_Scoreboard.Init();
+
+		
 
 	InitRain();
 

@@ -175,8 +175,9 @@ public:
 	}
 
 	static void Draw2DQuad( float x1, float y1, float x2, float y2 );
+	static void Draw2DQuadScaled( float x1, float y1, float x2, float y2 ) { return Draw2DQuad( x1 * gHUD.m_flScale, y1 * gHUD.m_flScale, x2 * gHUD.m_flScale, y2 * gHUD.m_flScale ); }
 
-private:
+  private:
 	// console string color
 	static float color[3];
 };
