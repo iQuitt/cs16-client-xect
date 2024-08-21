@@ -7,10 +7,10 @@ New cs16 client based on old FWGS repository (v1.33).
 - [x] **Nightvision fix**
 - [x] **HP & Money Display on Scoreboard**
 - [x] **Default cvar values same with original CS 1.6**
+- [x] Win Image (CT & T WIN)
 - [ ] HTML on MOTD
 - [ ] VGUI2 (requires Physic3D engine)
 - [ ] Gradle Android build
-- [ ] Win Image (CT & T WIN)
 - [ ] CS2 HUD (https://youtu.be/wi6-yMox6pk)
 - [ ] CSO Hud
 - [ ] CSO Killmark(Old and new style) and CS2 Killmark
