@@ -42,10 +42,11 @@
 #define CHudUserCmd(x) void UserCmd_##x()
 #define TMSG( x ) !strcmp( szMessage, x )
 #define RMSG( x ) !strcmp( szMessage, x )
-// #define TEAM_SP 3
 #define WIN_TEAM_TR 2
 #define WIN_TEAM_CT 1
 #define WIN_TEAM_NONE 0
+
+
 
 class RGBA
 {
@@ -720,18 +721,44 @@ class CHudWinImage : public CHudBase
   public:
 	int Init( void );
 	int VidInit( void );
-	int Think( float flTimer );
-	int Draw( );
+	void Think( float flTime );
+	int Draw( float flTime );
 	float m_flEndTime;
 	int bWinningTeam;
-	int IMG, IMG2;
 	cvar_t *hud_winimage;
+
+};
+
+//
+//-----------------------------------------------------
+//
+
+
+class CHudSpeedometer : public CHudBase
+{
+	cvar_t *hud_speedometer;
+	cvar_t *hud_speedometer_x;
+	cvar_t *hud_speedometer_y;
+	cvar_t *hud_speedometer_red;
+	cvar_t *hud_speedometer_blue;
+	cvar_t *hud_speedometer_green;
+	cvar_t *hud_speedometer_texture_type;
+	cvar_t *hud_speedometer_texture_width;
+	cvar_t *hud_speedometer_texture_height;
+
+  public:
+	virtual int Init( );
+	virtual int VidInit( );
+	void DrawNumberForSpeedoMeter( int number, float x, float y, int r, int g, int b, int a, int textureID );
+	virtual int Draw( float flTime );
+	void UpdateSpeed( const float velocity[2] );
+	int current_texture_type;
+	int textureID;
 
 
   private:
-	float left, right, centerx, centery;
+	int m_iSpeed;
 };
-
 
 
 //
@@ -936,6 +963,27 @@ public:
 		return m_bIsCZero;
 	}
 
+	int m_iFontHeight;
+	int DrawHudNumber( int x, int y, int iFlags, int iNumber, int r, int g, int b );
+	int DrawHudNumber( int x, int y, int iNumber, int r, int g, int b );
+	int DrawHudNumberCentered( int x, int y, int iNumber, int r, int g, int b );
+	int DrawHudString( int x, int y, int iMaxX, const char *szString, int r, int g, int b );
+	int DrawHudStringReverse( int xpos, int ypos, int iMinX, const char *szString, int r, int g, int b );
+	int DrawChar( int xpos, int ypos, int iMaxX, const char *szIt, int r, int g, int b );
+	int DrawCharReverse( int xpos, int ypos, int iMinX, const char *szString, int r, int g, int b );
+	int DrawHudNumberString( int xpos, int ypos, int iMinX, int iNumber, int r, int g, int b );
+	int GetNumWidth( int iNumber, int iFlags );
+	int DrawHudStringLen( const char *szIt );
+	int GetHudStringWidth( const char *string );
+	void DrawDarkRectangle( int x, int y, int wide, int tall );
+	void HUEtoRGB( float hue, int &R, int &G, int &B );
+	void DrawHudModelName( int x, int y, float topcolor, float bottomcolor, const char *model );
+	int DrawText( int x, int y, const char *szString, int r, int g, int b );
+	int DrawTextCentered( int x, int y, const char *szString, int r, int g, int b );
+	void DrawStringConsole( int x, int y, int r, int g, int b, const char *fmt, ... );
+
+
+
 
 	float   m_flTime;      // the current client time
 	float   m_fOldTime;    // the time at which the HUD was last redrawn
@@ -971,7 +1019,6 @@ public:
 
 	_HSPRITE m_hGasPuff;
 
-	int m_iFontHeight;
 	CHudAmmo        m_Ammo;
 	CHudHealth      m_Health;
 	CHudSpectator   m_Spectator;
@@ -998,6 +1045,7 @@ public:
 	CHudRadar       m_Radar;
 	CHudSpectatorGui m_SpectatorGui;
 	CHudWinImage m_WinImage;
+	CHudSpeedometer m_SpeedoMeter;
 
 	// user messages
 	CHudMsgFunc(Damage);

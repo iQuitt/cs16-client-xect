@@ -1671,6 +1671,8 @@ void V_CalcThirdPersonRefdef( ref_params_t *pparams )
 
 void DLLEXPORT V_CalcRefdef( struct ref_params_s *pparams )
 {
+	gHUD.m_SpeedoMeter.UpdateSpeed( pparams->simvel );
+
 	// intermission / finale rendering
 	if ( pparams->intermission )
 	{

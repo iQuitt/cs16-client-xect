@@ -118,7 +118,10 @@ inline void ConsolePrint( const char *string )
 {
 	gEngfuncs.pfnConsolePrint( string );
 }
-
+inline int TextMessageDrawChar( int x, int y, int number, int r, int g, int b )
+{
+	return gEngfuncs.pfnDrawCharacter( x, y, number, r, g, b );
+}
 inline void CenterPrint( const char *string )
 {
 	gEngfuncs.pfnCenterPrint( string );

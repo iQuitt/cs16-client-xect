@@ -36,16 +36,17 @@ int CHudWinImage::VidInit( )
 	return 1;
 }
 
-int CHudWinImage::Think( float flTimer )
+void CHudWinImage::Think( float flTime)
 {
-	if ( m_flEndTime && m_flEndTime < flTimer )
+
+	if ( m_flEndTime && m_flEndTime < flTime )
 	{
 		bWinningTeam = WIN_TEAM_NONE;
 		m_flEndTime  = 0.0f;
 	}
 }
 
-int CHudWinImage::Draw( )
+int CHudWinImage::Draw( float flTime )
 {
 	if ( !hud_winimage->value || ( !bWinningTeam ) )
 		return 0;

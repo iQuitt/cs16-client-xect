@@ -30,7 +30,6 @@
 #include "draw_util.h"
 
 DECLARE_MESSAGE( m_TextMessage, TextMsg )
-CHudWinImage m_WinImage;
 int CHudTextMessage::Init(void)
 {
 	HOOK_MESSAGE( TextMsg );
@@ -200,17 +199,17 @@ int CHudTextMessage::MsgFunc_TextMsg( const char *pszName, int iSize, void *pbuf
 	// Check winning team
 	if ( TMSG( szWin[0] ) || TMSG( szWin[1] ) || TMSG( szWin[2] ) || TMSG( szWin[3] ) || TMSG( szWin[4] ) || TMSG( szWin[5] ) )
 	{
-		
-		m_WinImage.bWinningTeam = WIN_TEAM_TR;
+		gHUD.m_WinImage.bWinningTeam = WIN_TEAM_TR;
 	}
 	else if ( TMSG( szWin[6] ) || TMSG( szWin[7] ) || TMSG( szWin[8] ) || TMSG( szWin[9] ) || TMSG( szWin[10] ) || TMSG( szWin[11] ) || TMSG( szWin[12] ) )
 	{
-		m_WinImage.bWinningTeam = TEAM_CT;
+		gHUD.m_WinImage.bWinningTeam = WIN_TEAM_CT;
 	}
-	if ( m_WinImage.bWinningTeam == WIN_TEAM_TR || m_WinImage.bWinningTeam == TEAM_CT )
+	if ( gHUD.m_WinImage.bWinningTeam == WIN_TEAM_TR || gHUD.m_WinImage.bWinningTeam == WIN_TEAM_CT )
 	{
-		m_WinImage.m_flEndTime = gHUD.m_flTime + 3.0f;
+		gHUD.m_WinImage.m_flEndTime = gHUD.m_flTime + 3.0f;
 	}
+
 
 	// keep reading strings and using C format strings for substituting the strings into the localised text string
 	char *sstr1 = LookupString( reader.ReadString() );

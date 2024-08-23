@@ -173,6 +173,8 @@ public:
 			FillRGBA( x,            y + tall - 1, wide - 1, 1,        255, 140, 0, 255 );
 		}
 	}
+	
+	static void Draw2DQuad2( float x, float y, float w, float h, float s1, float t1, float s2, float t2, int texnum, int r, int g, int b, int a );
 
 	static void Draw2DQuad( float x1, float y1, float x2, float y2 );
 	static void Draw2DQuadScaled( float x1, float y1, float x2, float y2 ) { return Draw2DQuad( x1 * gHUD.m_flScale, y1 * gHUD.m_flScale, x2 * gHUD.m_flScale, y2 * gHUD.m_flScale ); }
