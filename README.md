@@ -7,7 +7,8 @@ New cs16 client based on old FWGS repository (v1.33).
 - [x] **Nightvision fix**
 - [x] **HP & Money Display on Scoreboard**
 - [x] **Default cvar values same with original CS 1.6**
-- [x] Win Image (CT & T WIN)
+- [x] Win Image (CT & T WIN
+- [x] Speedometer (Console string, HUD and Nexon's Floatingdamage)
 - [ ] HTML on MOTD
 - [ ] VGUI2 (requires Physic3D engine)
 - [ ] Gradle Android build
