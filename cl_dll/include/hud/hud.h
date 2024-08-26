@@ -28,13 +28,13 @@
 
 #include <assert.h>
 #include <string.h>
-
 #include "wrect.h"
 #include "cl_dll.h"
 #include "ammo.h"
 
 #include "csprite.h"
 #include "cvardef.h"
+
 
 #define MIN_ALPHA	 100	
 #define	HUDELEM_ACTIVE	1
@@ -436,13 +436,88 @@ public:
 	void InitHUDData( void );
 	int VidInit( void );
 	int Draw( float flTime );
+	void Reset( void );
 	CHudMsgFunc(DeathMsg);
+	//void headshots( );
+	//void crazy( );
+	//void excellent( );
+	//void knife( );
+	//void incredible( );
+	//void cantbelieve( );
 
-private:
+
+  private:
 	int m_HUD_d_skull;  // sprite index of skull icon
 	int m_HUD_d_headshot;
 	cvar_t *hud_deathnotice_time;
+	cvar_t *hud_killicon_display_time;
+	cvar_t *hud_killeffect_display_time;
+	int m_killNums, m_multiKills;
+	int m_iconIndex;
+	bool m_showIcon, m_showKill;
+	float m_killEffectTime, m_killIconTime;
+	int m_killBg[3];
+	int m_deathBg[3];
+	int m_KM_Number0;
+	int m_KM_Number1;
+	int m_KM_Number2;
+	int m_KM_Number3;
+	int m_KM_KillText;
+	int m_KM_Icon_Head;
+	int m_KM_Icon_Knife;
+	int m_KM_Icon_Frag;
 };
+
+
+
+//
+//-----------------------------------------------------
+//
+
+class SoundManager {
+private:
+    static const int MAX_SOUNDS = 20; 
+    static const int MAX_SOUND_LENGTH = 32; 
+    char soundQueue[MAX_SOUNDS][MAX_SOUND_LENGTH];
+    int front;
+    int rear;
+    int count;
+    float lastSoundTime;
+    const float SOUND_DELAY = 1.0f; 
+
+public:
+    SoundManager() : front(0), rear(-1), count(0), lastSoundTime(0) {
+        for (int i = 0; i < MAX_SOUNDS; i++) {
+            soundQueue[i][0] = '\0';
+        }
+    }
+
+    void AddSound(const char* sound) {
+        if (count < MAX_SOUNDS) {
+            rear = (rear + 1) % MAX_SOUNDS;
+            strncpy(soundQueue[rear], sound, MAX_SOUND_LENGTH - 1);
+            soundQueue[rear][MAX_SOUND_LENGTH - 1] = '\0'; 
+            count++;
+        }
+    }
+
+    void Update(float currentTime) {
+        if (count > 0 && currentTime - lastSoundTime > SOUND_DELAY) {
+            PlaySound(soundQueue[front]);
+            front = (front + 1) % MAX_SOUNDS;
+            count--;
+            lastSoundTime = currentTime;
+        }
+    }
+
+private:
+    void PlaySound(const char* sound) {
+        char command[MAX_SOUND_LENGTH + 10]; 
+        snprintf(command, sizeof(command), "speak \"%s\"", sound);
+        gEngfuncs.pfnClientCmd(command);
+    }
+};
+
 
 //
 //-----------------------------------------------------
@@ -1046,7 +1121,7 @@ public:
 	CHudSpectatorGui m_SpectatorGui;
 	CHudWinImage m_WinImage;
 	CHudSpeedometer m_SpeedoMeter;
-
+	SoundManager m_SoundManager;
 	// user messages
 	CHudMsgFunc(Damage);
 	CHudMsgFunc(GameMode);

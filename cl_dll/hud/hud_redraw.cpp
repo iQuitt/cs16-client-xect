@@ -88,6 +88,7 @@ int CHud :: Redraw( float flTime, int intermission )
 	static int m_flShotTime = 0;
 
 	m_WinImage.Think( flTime );
+	m_SoundManager.Update( flTime );
 #ifdef __ANDROID__
 	if( cl_android_force_defaults && cl_android_force_defaults->value )
 	{
