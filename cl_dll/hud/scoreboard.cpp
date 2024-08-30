@@ -124,6 +124,12 @@ void CHudScoreboard :: InitHUDData( void )
 	m_iFlags &= ~HUD_DRAW;  // starts out inactive
 
 	m_iFlags |= HUD_INTERMISSION; // is always drawn during an intermission
+
+	m_iTeamScore_Max = 0;
+	m_iTeamScore_T   = 0;
+	m_iTeamScore_CT  = 0;
+	m_iTeamAlive_T   = 0;
+	m_iTeamAlive_CT  = 0;
 }
 
 // Y positions
@@ -393,6 +399,8 @@ int CHudScoreboard :: DrawPlayers( float list_slot, int nameoffset, const char *
 			DrawUtils::DrawHudString( ATTRIB_POS_START(), ypos, ATTRIB_POS_END(), "Dead", r, g, b );
 		else if( g_PlayerExtraInfo[best_player].has_c4 )
 			DrawUtils::DrawHudString( ATTRIB_POS_START(), ypos, ATTRIB_POS_END(), "Bomb", r, g, b );
+		else if ( g_PlayerExtraInfo[best_player].has_defuse_kit )
+			DrawUtils::DrawHudString( ATTRIB_POS_START( ), ypos, ATTRIB_POS_END( ), "Defuse Kit", r, g, b );
 		else if( g_PlayerExtraInfo[best_player].vip )
 			DrawUtils::DrawHudString( ATTRIB_POS_START(), ypos, ATTRIB_POS_END(), "VIP",  r, g, b );
 
@@ -469,8 +477,6 @@ int CHudScoreboard :: MsgFunc_ScoreInfo( const char *pszName, int iSize, void *p
 		g_PlayerExtraInfo[cl].deaths = deaths;
 		g_PlayerExtraInfo[cl].playerclass = playerclass;
 		g_PlayerExtraInfo[cl].teamnumber = teamnumber;
-
-		//gViewPort->UpdateOnPlayerInfo();
 	}
 
 	return 1;

@@ -47,6 +47,9 @@ static int DEATHNOTICE_DISPLAY_TIME = 6;
 
 #define DEATHNOTICE_TOP		32
 
+int announcerBackground;
+int m_lastSoldier[2];
+
 DeathNoticeItem rgDeathNoticeList[ MAX_DEATHNOTICES + 1 ];
 
 int CHudDeathNotice :: Init( void )
@@ -58,12 +61,67 @@ int CHudDeathNotice :: Init( void )
 	hud_deathnotice_time = CVAR_CREATE( "hud_deathnotice_time", "6", 0 );
 	hud_killicon_display_time = CVAR_CREATE( "hud_killicon_display_time", "1.5", FCVAR_ARCHIVE );
 	hud_killeffect_display_time = CVAR_CREATE( "hud_killeffect_display_time", "3", FCVAR_ARCHIVE );
+	gHUD.m_AnnouncerIcon.hud_killfx                  = gEngfuncs.pfnRegisterVariable( "hud_killfx", "1", FCVAR_ARCHIVE );
+
 	m_iFlags = 0;
 
 	return 1;
 }
 
+inline bool IsConnected( int playerIndex )
+{
+	return ( g_PlayerInfoList[playerIndex].name && g_PlayerInfoList[playerIndex].name[0] != 0 );
+}
 
+inline int GetTeamCounts( short teamnumber )
+{
+	int count = 0;
+
+	for ( int i = 1; i <= MAX_PLAYERS; i++ )
+	{
+		GetPlayerInfo( i, &g_PlayerInfoList[i] );
+		if ( !IsConnected( i ) )
+			continue;
+
+		if ( g_PlayerExtraInfo[i].teamnumber == teamnumber )
+			count++;
+	}
+
+	return count;
+}
+
+inline int GetTeamAliveCounts( short teamnumber )
+{
+	int count = 0;
+
+	for ( int i = 1; i <= MAX_PLAYERS; i++ )
+	{
+		GetPlayerInfo( i, &g_PlayerInfoList[i] );
+		if ( !IsConnected( i ) )
+			continue;
+
+		if ( g_PlayerExtraInfo[i].teamnumber == teamnumber && g_PlayerExtraInfo[i].dead == false )
+			count++;
+	}
+
+	return count;
+}
+void DrawKillFX( int killfx, int textureID, const char *soundName, float time )
+{
+	if ( killfx == 2 )
+	{
+		gHUD.m_AnnouncerIcon.textureManager.AddTexture( textureID, time );// new cso style draw texture and sound
+		gHUD.m_SoundManager.AddSound( soundName );                       
+
+	}
+	else if ( killfx == 1 )
+	{
+		gHUD.m_SoundManager.AddSound( soundName );// old cso style only sound.
+	}
+	gHUD.m_DeathNotice.m_killIconTime   = gHUD.m_flTime + gHUD.m_DeathNotice.hud_killicon_display_time->value;
+	gHUD.m_DeathNotice.m_killEffectTime = gHUD.m_flTime + gHUD.m_DeathNotice.hud_killeffect_display_time->value;
+	
+}
 void CHudDeathNotice :: Reset( void )
 {
 	m_killNums       = 0;
@@ -73,6 +131,7 @@ void CHudDeathNotice :: Reset( void )
 	m_iconIndex      = 0;
 	m_killEffectTime = 0;
 	m_killIconTime   = 0;
+	gHUD.m_AnnouncerIcon.m_iHeadshot = false;
 }
 
 
@@ -84,6 +143,20 @@ void CHudDeathNotice :: InitHUDData( void )
 
 int CHudDeathNotice :: VidInit( void )
 {
+	gHUD.m_AnnouncerIcon.announceTextures.resize( CHudAnnouncerIcon::Alarm_Type::ALARM_LAST, 0 );
+
+	for ( int i = 0; i < CHudAnnouncerIcon::Alarm_Type::ALARM_LAST; ++i )
+	{
+		if ( i < gHUD.m_AnnouncerIcon.texturePaths.size( ) )
+		{
+			gHUD.m_AnnouncerIcon.announceTextures[i] = gRenderAPI.GL_LoadTexture(
+			    gHUD.m_AnnouncerIcon.texturePaths[i].c_str( ),
+			    NULL,
+			    0,
+			    TF_NEAREST | TF_NOPICMIP | TF_NOMIPMAP | TF_CLAMP );
+		}
+	}
+	announcerBackground = gRenderAPI.GL_LoadTexture( "resource/announceribbon/announceicon/alarm_bg.tga", NULL, 0, TF_NEAREST | TF_NOPICMIP | TF_NOMIPMAP | TF_CLAMP );
 	m_HUD_d_skull = gHUD.GetSpriteIndex( "d_skull" );
 	m_HUD_d_headshot = gHUD.GetSpriteIndex( "d_headshot" );
 	m_KM_Number0     = gHUD.GetSpriteIndex( "KM_Number0" );
@@ -116,6 +189,12 @@ int CHudDeathNotice :: Draw( float flTime )
 		}
 
 		rgDeathNoticeList[i].flDisplayTime = min( rgDeathNoticeList[i].flDisplayTime, flTime + DEATHNOTICE_DISPLAY_TIME );
+
+
+		gHUD.m_Scoreboard.m_iTeamAlive_T  = GetTeamAliveCounts( TEAM_TERRORIST );
+		gHUD.m_Scoreboard.m_iTeamAlive_CT = GetTeamAliveCounts( TEAM_CT );
+		if ( gHUD.m_AnnouncerIcon.hud_killfx->value == 2 )
+			gHUD.m_AnnouncerIcon.textureManager.Update( gHUD.m_flTime );
 
 		// Hide when scoreboard drawing. It will break triapi
 		//if ( gViewPort && gViewPort->AllowedToPrintText() )
@@ -173,123 +252,139 @@ int CHudDeathNotice :: Draw( float flTime )
 				x = DrawUtils::DrawConsoleString( x, y, rgDeathNoticeList[i].szVictim );
 			}
 		}
-	}
+		}
 
-	if (m_showKill)
-	{
-		m_killEffectTime = min(m_killEffectTime, gHUD.m_flTime + KILLEFFECT_DISPLAY_TIME);
-
-		if (gHUD.m_flTime < m_killEffectTime)
+		if ( ( m_showKill || m_killNums ) && gHUD.m_AnnouncerIcon.hud_killfx->value )
 		{
-			int r = 255, g = 255, b = 255;
-			float alpha = (m_killEffectTime - gHUD.m_flTime) / KILLEFFECT_DISPLAY_TIME;
-			int numIndex = -1;
+			m_killEffectTime = min(m_killEffectTime, gHUD.m_flTime + KILLEFFECT_DISPLAY_TIME);
 
-			if (alpha > 0)
+			if ( gHUD.m_flTime < m_killEffectTime )
 			{
-				r *= alpha;
-				g *= alpha;
-				b *= alpha;
 
-				switch (m_multiKills)
-				{
-				case 1:
-				{
-					numIndex = m_KM_Number0;
-					break;
-				}
-
-				case 2:
-				{
-					numIndex = m_KM_Number1;
-					break;
-				}
-
-				case 3:
-				{
-					numIndex = m_KM_Number2;
-					break;
-				}
-
-				case 4:
-				{
-					numIndex = m_KM_Number3;
-					break;
-				}
-				}
-
-				if (numIndex != -1)
-				{
-					int numWidth, numHeight;
-					int textWidth, textHeight;
-					int iconWidth, iconHeight;
-
-					numWidth = gHUD.GetSpriteRect(numIndex).right - gHUD.GetSpriteRect(numIndex).left;
-					numHeight = gHUD.GetSpriteRect(numIndex).bottom - gHUD.GetSpriteRect(numIndex).top;
-					textWidth = gHUD.GetSpriteRect(m_KM_KillText).right - gHUD.GetSpriteRect(m_KM_KillText).left;
-					textHeight = gHUD.GetSpriteRect(m_KM_KillText).bottom - gHUD.GetSpriteRect(m_KM_KillText).top;
-					iconWidth = gHUD.GetSpriteRect(m_KM_Icon_Head).right - gHUD.GetSpriteRect(m_KM_Icon_Head).left;
-					iconHeight = gHUD.GetSpriteRect(m_KM_Icon_Head).bottom - gHUD.GetSpriteRect(m_KM_Icon_Head).top;
-
-					if (m_multiKills == 1)
-						numWidth += 10;
-
-					y = (25.0 * 0.01 * ScreenHeight) - (iconHeight + textHeight) * 0.5;
-					x = (50.0 * 0.01 * ScreenWidth) - (numHeight + textWidth) * 0.5;
-
-					SPR_Set(gHUD.GetSprite(numIndex), r, g, b);
-					SPR_DrawAdditive(0, x, y - (gHUD.GetSpriteRect(numIndex).bottom + gHUD.GetSpriteRect(m_KM_KillText).top - gHUD.GetSpriteRect(m_KM_KillText).bottom - gHUD.GetSpriteRect(numIndex).top) * 0.6, &gHUD.GetSpriteRect(numIndex));
-
-					SPR_Set(gHUD.GetSprite(m_KM_KillText), r, g, b);
-					SPR_DrawAdditive(0, x + numWidth, y, &gHUD.GetSpriteRect(m_KM_KillText));
-
-					x = (50.0 * 0.01 * ScreenWidth) - (iconWidth) * 0.5;
-					y = y + textHeight;
-
-					m_killIconTime = min(m_killIconTime, gHUD.m_flTime + KILLICON_DISPLAY_TIME);
-
-					if (m_showIcon)
+			
+					int r = 255, g = 255, b = 255;
+					float alpha  = ( m_killEffectTime - gHUD.m_flTime ) / KILLEFFECT_DISPLAY_TIME;
+					int numIndex = -1;
+					if ( gHUD.m_AnnouncerIcon.hud_killfx->value == 2 )
 					{
-						alpha = (m_killIconTime - gHUD.m_flTime) / KILLICON_DISPLAY_TIME;
-
-						if (alpha > 0)
+						if ( gHUD.m_AnnouncerIcon.textureManager.HasTextures( ) )
 						{
-							r *= alpha;
-							g *= alpha;
-							b *= alpha;
+							auto currentTexture = gHUD.m_AnnouncerIcon.textureManager.GetCurrentTexture( );
+							int textureWidth    = 94;
+							int textureHeight   = 94;
 
-							switch (m_iconIndex)
-							{
-							case 1:
-							{
-								SPR_Set(gHUD.GetSprite(m_KM_Icon_Head), r, g, b);
-								SPR_DrawAdditive(0, x, y, &gHUD.GetSpriteRect(m_KM_Icon_Head));
-								break;
-							}
-
-							case 2:
-							{
-								SPR_Set(gHUD.GetSprite(m_KM_Icon_Knife), r, g, b);
-								SPR_DrawAdditive(0, x, y, &gHUD.GetSpriteRect(m_KM_Icon_Knife));
-								break;
-							}
-
-							case 3:
-							{
-								SPR_Set(gHUD.GetSprite(m_KM_Icon_Frag), r, g, b);
-								SPR_DrawAdditive(0, x, y, &gHUD.GetSpriteRect(m_KM_Icon_Frag));
-								break;
-							}
-							}
+							DrawUtils::Draw2DQuad2( ScreenWidth / 2, ScreenHeight / 2 - 50 , textureWidth, textureHeight, 0.0f, 0.0f, 1.0f, 1.0f, currentTexture.textureID, 255, 255, 255, currentTexture.alpha * 255 );
 						}
 					}
+				if ( alpha > 0 && gHUD.m_AnnouncerIcon.hud_killfx->value == 1 )
+				{
+					r *= alpha;
+					g *= alpha;
+					b *= alpha;
+
+					switch ( m_multiKills )
+					{
+					case 1:
+					{
+						numIndex = m_KM_Number0;
+						break;
+					}
+
+					case 2:
+					{
+						numIndex = m_KM_Number1;
+						break;
+					}
+
+					case 3:
+					{
+						numIndex = m_KM_Number2;
+						break;
+					}
+
+					case 4:
+					{
+						numIndex = m_KM_Number3;
+						break;
+					}
+					}
+
+					if ( numIndex != -1 )
+				    {
+					    int numWidth, numHeight;
+					    int textWidth, textHeight;
+					    int iconWidth, iconHeight;
+
+					    numWidth   = gHUD.GetSpriteRect( numIndex ).right - gHUD.GetSpriteRect( numIndex ).left;
+					    numHeight  = gHUD.GetSpriteRect( numIndex ).bottom - gHUD.GetSpriteRect( numIndex ).top;
+					    textWidth  = gHUD.GetSpriteRect( m_KM_KillText ).right - gHUD.GetSpriteRect( m_KM_KillText ).left;
+					    textHeight = gHUD.GetSpriteRect( m_KM_KillText ).bottom - gHUD.GetSpriteRect( m_KM_KillText ).top;
+					    iconWidth  = gHUD.GetSpriteRect( m_KM_Icon_Head ).right - gHUD.GetSpriteRect( m_KM_Icon_Head ).left;
+					    iconHeight = gHUD.GetSpriteRect( m_KM_Icon_Head ).bottom - gHUD.GetSpriteRect( m_KM_Icon_Head ).top;
+
+					    if ( m_multiKills == 1 )
+						    numWidth += 10;
+
+					    y = ( 25.0 * 0.01 * ScreenHeight ) - ( iconHeight + textHeight ) * 0.5;
+					    x = ( 50.0 * 0.01 * ScreenWidth ) - ( numHeight + textWidth ) * 0.5;
+
+					    SPR_Set( gHUD.GetSprite( numIndex ), r, g, b );
+					    SPR_DrawAdditive( 0, x, y - ( gHUD.GetSpriteRect( numIndex ).bottom + gHUD.GetSpriteRect( m_KM_KillText ).top - gHUD.GetSpriteRect( m_KM_KillText ).bottom - gHUD.GetSpriteRect( numIndex ).top ) * 0.6, &gHUD.GetSpriteRect( numIndex ) );
+
+					    SPR_Set( gHUD.GetSprite( m_KM_KillText ), r, g, b );
+					    SPR_DrawAdditive( 0, x + numWidth, y, &gHUD.GetSpriteRect( m_KM_KillText ) );
+
+					    x = ( 50.0 * 0.01 * ScreenWidth ) - (iconWidth)*0.5;
+					    y = y + textHeight;
+
+					    m_killIconTime = min( m_killIconTime, gHUD.m_flTime + KILLICON_DISPLAY_TIME );
+
+
+					    if ( m_showIcon && gHUD.m_AnnouncerIcon.hud_killfx->value == 1 )
+					    {
+						    alpha = ( m_killIconTime - gHUD.m_flTime ) / KILLICON_DISPLAY_TIME;
+
+						    if ( alpha > 0 )
+						    {
+							    r *= alpha;
+							    g *= alpha;
+							    b *= alpha;
+
+							    switch ( m_iconIndex )
+							    {
+							    case 1:
+							    {
+								    SPR_Set( gHUD.GetSprite( m_KM_Icon_Head ), r, g, b );
+								    SPR_DrawAdditive( 0, x, y, &gHUD.GetSpriteRect( m_KM_Icon_Head ) );
+								    break;
+							    }
+
+							    case 2:
+							    {
+								    SPR_Set( gHUD.GetSprite( m_KM_Icon_Knife ), r, g, b );
+								    SPR_DrawAdditive( 0, x, y, &gHUD.GetSpriteRect( m_KM_Icon_Knife ) );
+								    break;
+							    }
+
+							    case 3:
+							    {
+								    SPR_Set( gHUD.GetSprite( m_KM_Icon_Frag ), r, g, b );
+								    SPR_DrawAdditive( 0, x, y, &gHUD.GetSpriteRect( m_KM_Icon_Frag ) );
+								    break;
+							    }
+							    }
+						    }
+					    }
+				    }
 				}
-			}
+			
 		}
 		else
 		{
 			m_showKill = false;
 			m_showIcon = false;
+			gHUD.m_AnnouncerIcon.m_iHeadshot = false;
+
 		}
 	}
 
@@ -322,6 +417,8 @@ int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *p
 	gHUD.m_Scoreboard.DeathMsg( killer, victim );
 
 	gHUD.m_Spectator.DeathMessage(victim);
+
+
 	
 	if ( !strcmp( killedwith, "d_knife" ) )
 	{
@@ -329,8 +426,9 @@ int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *p
 		{
 			m_showIcon     = true;
 			m_iconIndex    = 2;
-			m_killIconTime = gHUD.m_flTime + KILLICON_DISPLAY_TIME;
-			gHUD.m_SoundManager.AddSound( "Humililation" );
+			DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_KNIFE], "Humililation", gHUD.m_flTime );
+
+
 		}
 
 		if ( victim == idx )
@@ -342,6 +440,33 @@ int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *p
 		}
 	}
 
+
+	int first = 0, back = 0, kingmaker = 1;
+	int count[2]{ };
+	for ( int i = 0; i < 33; i++ )
+	{
+		if ( g_PlayerExtraInfo[i].teamnumber == g_PlayerExtraInfo[victim].teamnumber  )
+		{
+			if ( !( ( g_PlayerInfoList[first].name && g_PlayerInfoList[first].name[0] != 0 ) ) )
+				    first = i;
+
+			if ( !( ( g_PlayerInfoList[back].name && g_PlayerInfoList[back].name[0] != 0 ) ) )
+				    back = i;
+
+			if ( g_PlayerExtraInfo[i].frags < g_PlayerExtraInfo[back].frags )
+				    back = i;
+
+			if ( g_PlayerExtraInfo[i].frags > g_PlayerExtraInfo[first].frags )
+				    first = i;
+		}
+		else if ( g_PlayerExtraInfo[i].teamnumber == g_PlayerExtraInfo[killer].teamnumber )
+		{
+			if ( g_PlayerExtraInfo[i].frags > g_PlayerExtraInfo[killer].frags + 1 )
+				    kingmaker = 0;
+		}
+	}
+
+
 	if ( killer == idx && victim != idx )
 	{
 		m_killNums++;
@@ -352,64 +477,135 @@ int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *p
 		{
 			m_showIcon     = true;
 			m_iconIndex    = 1;
-			m_killIconTime = gHUD.m_flTime + KILLICON_DISPLAY_TIME;
-			
-			 gHUD.m_SoundManager.AddSound( "HeadShot" );
+			gHUD.m_AnnouncerIcon.m_iHeadshot = true;
+			DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_HEADSHOT], "Headshot", gHUD.m_flTime );
 		}
 
 		if ( !strcmp( killedwith, "d_grenade" ) )
 		{
 			m_showIcon     = true;
 			m_iconIndex    = 3;
-			m_killIconTime = gHUD.m_flTime + KILLICON_DISPLAY_TIME;
-			 gHUD.m_SoundManager.AddSound( "GotIt" );
+			DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_GRENADE], "GotIt", gHUD.m_flTime );
+
 		}
 
 		switch ( m_multiKills )
 		{
-		case 1:
-			gHUD.m_SoundManager.AddSound( "FirstKill" );
-			m_showKill       = true;
-			m_killEffectTime = gHUD.m_flTime + KILLEFFECT_DISPLAY_TIME;
-			break;
-		case 2:
-			gHUD.m_SoundManager.AddSound( "DoubleKill" );
-			m_showKill       = true;
-			m_killEffectTime = gHUD.m_flTime + KILLEFFECT_DISPLAY_TIME;
-			break;
-		case 3:
-			gHUD.m_SoundManager.AddSound( "TripleKill" );
-			m_showKill       = true;
-			m_killEffectTime = gHUD.m_flTime + KILLEFFECT_DISPLAY_TIME;
-			break;
-		default:
-			if ( m_multiKills > 3 )
-			{
-				gHUD.m_SoundManager.AddSound( "MultiKill" );
-				m_showKill       = true;
-				m_killEffectTime = gHUD.m_flTime + KILLEFFECT_DISPLAY_TIME;
-			}
-			break;
+			case 1:
+				m_showKill = true;
+				DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_FIRSTBLOOD], "FirstKill", gHUD.m_flTime );
+				break;
+			case 2:
+			    m_showKill = true;
+				DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_2KILL], "DoubleKill", gHUD.m_flTime );
+				break;
+			case 3:
+			    m_showKill = true;
+				DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_3KILL], "TripleKill", gHUD.m_flTime );
+				break;
+			case 4:
+			    m_showKill = true;
+				DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_4KILL], "MultiKill", gHUD.m_flTime );
+				break;
+
 		}
 
 		
 		switch ( m_killNums )
 		{
+
 			case 5:
-				 gHUD.m_SoundManager.AddSound( "Excellent" );
+				m_showKill = true;
+				DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_EXCELLENT], "Excellent", gHUD.m_flTime );
 				break;
 			case 10:
-				 gHUD.m_SoundManager.AddSound( "Incredible" );
+				m_showKill = true;
+			    DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_INCREDIBLE], "Incredible", gHUD.m_flTime );
 				break;
 			case 15:
-				 gHUD.m_SoundManager.AddSound( "Crazy" );
+			    DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_CRAZY], "Crazy", gHUD.m_flTime );
+				m_showKill = true;
 				break;
 			case 20:
-				 gHUD.m_SoundManager.AddSound( "CantBelive" );
+			    DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_CANTBELIEVE], "CantBelieve", gHUD.m_flTime );
+				m_showKill = true;
 				break;
 			case 25:
-				 gHUD.m_SoundManager.AddSound( "OutofWorld" );
+				m_showKill = true;
+				DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_OUTOFWORLD], "OutOfWorld", gHUD.m_flTime );
 				break;
+
+		}
+		
+		if (gHUD.m_AnnouncerIcon.m_iPayback)
+		{
+			m_showKill                      = true;
+			    DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_PAYBACK], "Supply", gHUD.m_flTime );
+		}
+		if (gHUD.m_AnnouncerIcon.m_iLastLocalAlive)
+		{
+			m_showKill = true;
+			    DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_LASTSOLDIER], "Supply", gHUD.m_flTime );
+
+		}
+
+		if ( first == victim && g_PlayerExtraInfo[first].frags != g_PlayerExtraInfo[back].frags )
+		{
+			if ( idx == killer )
+			{
+				    m_showKill = true;
+				    DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_KINGMURDER], "Supply", gHUD.m_flTime );
+
+			}
+		}
+
+		if ( back == victim && g_PlayerExtraInfo[first].frags != g_PlayerExtraInfo[back].frags )
+		{
+			if ( idx == killer )
+			{
+				    m_showKill = true;
+				    DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_BACKMARKER], "Supply", gHUD.m_flTime );
+			}	
+		}
+		if ( ( gHUD.m_Scoreboard.m_iTeamAlive_CT ) == 1 || ( gHUD.m_Scoreboard.m_iTeamAlive_T ) == 1 )
+		{
+			if ( ( gHUD.m_Scoreboard.m_iTeamAlive_CT ) == 1 && g_PlayerExtraInfo[killer].teamnumber == 1 )
+			{
+				if ( !g_PlayerExtraInfo[killer].dead && idx == killer )
+				{
+					m_showKill = true;
+					    DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_THELAST], "Supply", gHUD.m_flTime );
+				}
+			}
+			else if ( ( gHUD.m_Scoreboard.m_iTeamAlive_T ) == 1 && g_PlayerExtraInfo[killer].teamnumber == 2 )
+			{
+				if ( !g_PlayerExtraInfo[killer].dead && idx == killer )
+				{
+					m_showKill = true;
+					    DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_THELAST], "Supply", gHUD.m_flTime );
+
+				}
+			}
+		}
+	}
+
+	if ( ( gHUD.m_Scoreboard.m_iTeamAlive_CT - 1 ) == 1 || ( gHUD.m_Scoreboard.m_iTeamAlive_T - 1 ) == 1 )
+	{
+		for ( int i = 0; i < 33; i++ )
+		{
+			if ( !( ( g_PlayerInfoList[i].name && g_PlayerInfoList[i].name[0] != 0 ) ) )
+				continue;
+
+			if ( ( ( gHUD.m_Scoreboard.m_iTeamAlive_T - 1 ) == 1 && g_PlayerExtraInfo[i].teamnumber == 1 && m_lastSoldier[0] ) || ( ( gHUD.m_Scoreboard.m_iTeamAlive_CT - 1 == 1 ) && g_PlayerExtraInfo[i].teamnumber == 2 && !m_lastSoldier[1] ) )
+			{
+				if ( idx == i )
+				{
+					m_showKill = true;
+					DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_LASTSOLDIER], "Supply", gHUD.m_flTime );
+				}
+				m_lastSoldier[g_PlayerExtraInfo[i].teamnumber - 1] = 1;
+				break;
+			}
 		}
 	}
 
@@ -478,6 +674,16 @@ int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *p
 			rgDeathNoticeList[i].bTeamKill = true;
 	}
 
+	for ( int j = 0; j < MAX_DEATHNOTICES; j++ )
+	{
+		if ( rgDeathNoticeList[j].iId != 0 &&
+		     strcmp( rgDeathNoticeList[j].szKiller, victim_name ) == 0 &&
+		     strcmp( rgDeathNoticeList[j].szVictim, killer_name ) == 0 )
+		{
+			gHUD.m_AnnouncerIcon.m_iPayback = true;
+			break;
+		}
+	}
 	rgDeathNoticeList[i].iHeadShotId = headshot;
 
 	// Find the sprite in the list

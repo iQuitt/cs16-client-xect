@@ -31,7 +31,8 @@
 #include "wrect.h"
 #include "cl_dll.h"
 #include "ammo.h"
-
+#include <vector>
+#include <string>
 #include "csprite.h"
 #include "cvardef.h"
 
@@ -329,6 +330,9 @@ public:
 
 	int m_iPlayerNum;
 	int m_iNumTeams;
+	int m_iTeamScore_Max;
+	int m_iTeamScore_T, m_iTeamScore_CT;
+	int m_iTeamAlive_T, m_iTeamAlive_CT;
 
 private:
 	int m_iLastKilledBy;
@@ -383,6 +387,7 @@ struct extra_player_info_t
 	long account;
 	char teamname[MAX_TEAM_NAME];
 	bool has_c4;
+	bool has_defuse_kit;
 	bool vip;
 	bool dead;
 	bool showhealth;
@@ -438,24 +443,19 @@ public:
 	int Draw( float flTime );
 	void Reset( void );
 	CHudMsgFunc(DeathMsg);
-	//void headshots( );
-	//void crazy( );
-	//void excellent( );
-	//void knife( );
-	//void incredible( );
-	//void cantbelieve( );
+	float m_killEffectTime, m_killIconTime;
+	int m_killNums, m_multiKills;
+	cvar_t *hud_deathnotice_time;
+	cvar_t *hud_killicon_display_time;
+	cvar_t *hud_killeffect_display_time;
 
 
   private:
 	int m_HUD_d_skull;  // sprite index of skull icon
 	int m_HUD_d_headshot;
-	cvar_t *hud_deathnotice_time;
-	cvar_t *hud_killicon_display_time;
-	cvar_t *hud_killeffect_display_time;
-	int m_killNums, m_multiKills;
+
 	int m_iconIndex;
 	bool m_showIcon, m_showKill;
-	float m_killEffectTime, m_killIconTime;
 	int m_killBg[3];
 	int m_deathBg[3];
 	int m_KM_Number0;
@@ -474,49 +474,276 @@ public:
 //-----------------------------------------------------
 //
 
-class SoundManager {
-private:
-    static const int MAX_SOUNDS = 20; 
-    static const int MAX_SOUND_LENGTH = 32; 
-    char soundQueue[MAX_SOUNDS][MAX_SOUND_LENGTH];
-    int front;
-    int rear;
-    int count;
-    float lastSoundTime;
-    const float SOUND_DELAY = 1.0f; 
+class SoundManager
+{
+  private:
+	static const int MAX_SOUNDS       = 20;
+	static const int MAX_SOUND_LENGTH = 32;
+	char soundQueue[MAX_SOUNDS][MAX_SOUND_LENGTH];
+	int front;
+	int rear;
+	int count;
+	float lastSoundTime;
+	const float SOUND_DELAY = 1.0f;
 
-public:
-    SoundManager() : front(0), rear(-1), count(0), lastSoundTime(0) {
-        for (int i = 0; i < MAX_SOUNDS; i++) {
-            soundQueue[i][0] = '\0';
-        }
-    }
+  public:
+	SoundManager( )
+	    : front( 0 ), rear( -1 ), count( 0 ), lastSoundTime( 0 )
+	{
+		for ( int i = 0; i < MAX_SOUNDS; i++ )
+		{
+			soundQueue[i][0] = '\0';
+		}
+	}
 
-    void AddSound(const char* sound) {
-        if (count < MAX_SOUNDS) {
-            rear = (rear + 1) % MAX_SOUNDS;
-            strncpy(soundQueue[rear], sound, MAX_SOUND_LENGTH - 1);
-            soundQueue[rear][MAX_SOUND_LENGTH - 1] = '\0'; 
-            count++;
-        }
-    }
+	void AddSound( const char *sound )
+	{
+		if ( count < MAX_SOUNDS )
+		{
+			rear = ( rear + 1 ) % MAX_SOUNDS;
+			strncpy( soundQueue[rear], sound, MAX_SOUND_LENGTH - 1 );
+			soundQueue[rear][MAX_SOUND_LENGTH - 1] = '\0';
+			count++;
+		}
+	}
 
-    void Update(float currentTime) {
-        if (count > 0 && currentTime - lastSoundTime > SOUND_DELAY) {
-            PlaySound(soundQueue[front]);
-            front = (front + 1) % MAX_SOUNDS;
-            count--;
-            lastSoundTime = currentTime;
-        }
-    }
+	void Update( float currentTime )
+	{
+		if ( count > 0 && currentTime - lastSoundTime > SOUND_DELAY )
+		{
+			PlaySound( soundQueue[front] );
+			front = ( front + 1 ) % MAX_SOUNDS;
+			count--;
+			lastSoundTime = currentTime;
+		}
+	}
 
-private:
-    void PlaySound(const char* sound) {
-        char command[MAX_SOUND_LENGTH + 10]; 
-        snprintf(command, sizeof(command), "speak \"%s\"", sound);
-        gEngfuncs.pfnClientCmd(command);
-    }
+  private:
+	void PlaySound( const char *sound )
+	{
+		char command[MAX_SOUND_LENGTH + 10];
+		snprintf( command, sizeof( command ), "speak \"%s\"", sound );
+		gEngfuncs.pfnClientCmd( command );
+	}
 };
+
+class TextureManager
+{
+
+  private:
+	struct TextureInfo
+	{
+		int textureID;
+		float duration;
+		float startTime;
+		float alpha;
+	};
+
+	std::vector< TextureInfo > textureList;
+	float lastDrawTime;
+	const float ALARM_DURATION = 0.5f; // Base duration for each alarm
+	const float ALARM_FADE_DURATION    = 0.1f; // Fade in/out duration
+
+  public:
+	TextureManager( )
+	    : lastDrawTime( 0 ) {}
+
+	void AddTexture( int textureID, float currentTime )
+	{
+		float duration = ALARM_DURATION;
+		if ( !textureList.empty( ) )
+		{
+			duration += textureList.back( ).duration; 
+		}
+		textureList.push_back( { textureID, duration, currentTime, 0.0f } );
+	}
+
+	void Update( float currentTime )
+	{
+		
+		if ( !textureList.empty( ) )
+		{
+			TextureInfo &front = textureList.front( );
+			float elapsedTime  = currentTime - front.startTime;
+
+			if ( elapsedTime <= ALARM_FADE_DURATION )
+			{
+				front.alpha = elapsedTime / ALARM_FADE_DURATION; // Fade in
+			}
+			else if ( elapsedTime > front.duration - ALARM_FADE_DURATION )
+			{
+				front.alpha = ( front.duration - elapsedTime ) / ALARM_FADE_DURATION; // Fade out
+			}
+			else
+			{
+				front.alpha = 1.0f;
+			}
+
+			if ( elapsedTime > front.duration )
+			{
+				textureList.erase( textureList.begin( ) );
+				if ( !textureList.empty( ) )
+				{
+					textureList.front( ).startTime = currentTime;
+				}
+			}
+		}
+	}
+
+	bool HasTextures( ) const
+	{
+		return !textureList.empty( );
+	}
+
+	TextureInfo GetCurrentTexture( ) const
+	{
+		return textureList.front( );
+	}
+};
+
+
+
+class CHudAnnouncerIcon : public CHudBase
+{
+
+
+  public:
+	bool m_iLastLocalAlive; // Local Player Last Alive
+	bool m_pLastPlayer;     // Kill the Last Enemy
+	bool m_iWellRound;      // Kill everyone on the enemy team without dying
+	bool m_pBully;          // kill the worst player of the game
+	bool m_iUntouchable;    // kill the best player of the game
+	bool m_iHeadshot;
+	bool m_iPayback; // Kill the enemy who killed you previously.	  
+	int iIndex;
+	std::vector< int > announceTextures; // Texture id
+	cvar_t *hud_killfx;
+
+
+	TextureManager textureManager;
+
+	enum Alarm_Type
+	{
+		ALARM_KNIFE = 0,
+		ALARM_GRENADE,
+		ALARM_HEADSHOT,
+		ALARM_KILL,
+		ALARM_2KILL,
+		ALARM_3KILL,
+		ALARM_4KILL,
+		ALARM_FIRSTBLOOD,
+		ALARM_PAYBACK,
+		ALARM_EXCELLENT,
+		ALARM_INCREDIBLE,
+		ALARM_CRAZY,
+		ALARM_CANTBELIEVE,
+		ALARM_OUTOFWORLD,
+		ALARM_LIBERATOR,
+		ALARM_ALLROUND,
+		ALARM_INFECTOR,
+		ALARM_SUPPORTER,
+		ALARM_KINGMAKER,
+		ALARM_ASSIST,
+		ALARM_THELAST,
+		ALARM_LASTSOLDIER,
+		ALARM_SAVIOR,
+		ALARM_INVISHAND,
+		ALARM_KINGMURDER,
+		ALARM_BACKMARKER,
+		ALARM_WELCOME,
+		ALARM_COMEBACK,
+		ALARM_C4MANKILL,
+		ALARM_C4PLANT,
+		ALARM_C4PLANTBLOCK,
+		ALARM_C4DEFUSTBLOCK,
+		ALARM_ZOMBIEBOMB,
+		ALARM_ZOMBIETANKER,
+		ALARM_INTOXICATION,
+		ALARM_REVIVALWILL,
+		ALARM_MAXLEVEL,
+		ALARM_PROFESSIONAL,
+		ALARM_UNTOUCHABLE,
+		ALARM_DESTRUCTION,
+		ALARM_TERMINATION,
+		ALARM_RESCUE,
+		ALARM_COMBO,
+		ALARM_ALIVE,
+		ALARM_NOPARASHUTE,
+		ALARM_CHICKENCHASER,
+		ALARM_OVERRUN,
+		ALARM_ATTACKER,
+		ALARM_BESTMOMENT,
+		ALARM_HOLDOUT,
+		ALARM_BATPULL,
+		ALARM_DROPWEAPON,
+		ALARM_HIDE,
+		ALARM_HEALER,
+		ALARM_LAST
+	};
+
+
+	std::vector< std::string > texturePaths = {
+	    "resource/announceribbon/announceicon/alarm_knife.tga",         // ALARM_KNIFE
+	    "resource/announceribbon/announceicon/alarm_grenade.tga",       // ALARM_GRENADE
+	    "resource/announceribbon/announceicon/alarm_headshot.tga",      // ALARM_HEADSHOT
+	    "resource/announceribbon/announceicon/alarm_kill.tga",          // ALARM_KILL
+	    "resource/announceribbon/announceicon/alarm_2kill.tga",         // ALARM_2KILL
+	    "resource/announceribbon/announceicon/alarm_3kill.tga",         // ALARM_3KILL
+	    "resource/announceribbon/announceicon/alarm_4kill.tga",         // ALARM_4KILL
+	    "resource/announceribbon/announceicon/alarm_firstblood.tga",    // ALARM_FIRSTBLOOD
+	    "resource/announceribbon/announceicon/alarm_payback.tga",       // ALARM_PAYBACK
+	    "resource/announceribbon/announceicon/alarm_excellent.tga",     // ALARM_EXCELLENT
+	    "resource/announceribbon/announceicon/alarm_incredible.tga",    // ALARM_INCREDIBLE
+	    "resource/announceribbon/announceicon/alarm_crazy.tga",         // ALARM_CRAZY
+	    "resource/announceribbon/announceicon/alarm_cantbelieve.tga",   // ALARM_CANTBELIEVE
+	    "resource/announceribbon/announceicon/alarm_outofworld.tga",    // ALARM_OUTOFWORLD
+	    "resource/announceribbon/announceicon/alarm_liberator.tga",     // ALARM_LIBERATOR
+	    "resource/announceribbon/announceicon/alarm_allround.tga",      // ALARM_ALLROUND
+	    "resource/announceribbon/announceicon/alarm_infector.tga",      // ALARM_INFECTOR
+	    "resource/announceribbon/announceicon/alarm_supporter.tga",     // ALARM_SUPPORTER
+	    "resource/announceribbon/announceicon/alarm_kingmaker.tga",     // ALARM_KINGMAKER
+	    "resource/announceribbon/announceicon/alarm_assist.tga",        // ALARM_ASSIST
+	    "resource/announceribbon/announceicon/alarm_thelast.tga",       // ALARM_THELAST
+	    "resource/announceribbon/announceicon/alarm_lastsoldier.tga",   // ALARM_LASTSOLDIER
+	    "resource/announceribbon/announceicon/alarm_savior.tga",        // ALARM_SAVIOR
+	    "resource/announceribbon/announceicon/alarm_invishand.tga",     // ALARM_INVISHAND
+	    "resource/announceribbon/announceicon/alarm_kingmurder.tga",    // ALARM_KINGMURDER
+	    "resource/announceribbon/announceicon/alarm_backmarker.tga",    // ALARM_BACKMARKER
+	    "resource/announceribbon/announceicon/alarm_welcome.tga",       // ALARM_WELCOME
+	    "resource/announceribbon/announceicon/alarm_comeback.tga",      // ALARM_COMEBACK
+	    "resource/announceribbon/announceicon/alarm_c4mankill.tga",     // ALARM_C4MANKILL
+	    "resource/announceribbon/announceicon/alarm_c4plant.tga",       // ALARM_C4PLANT
+	    "resource/announceribbon/announceicon/alarm_c4plantblock.tga",  // ALARM_C4PLANTBLOCK
+	    "resource/announceribbon/announceicon/alarm_c4defustblock.tga", // ALARM_C4DEFUSTBLOCK
+	    "resource/announceribbon/announceicon/alarm_zombiebomb.tga",    // ALARM_ZOMBIEBOMB
+	    "resource/announceribbon/announceicon/alarm_zombietanker.tga",  // ALARM_ZOMBIETANKER
+	    "resource/announceribbon/announceicon/alarm_intoxication.tga",  // ALARM_INTOXICATION
+	    "resource/announceribbon/announceicon/alarm_revivalwill.tga",   // ALARM_REVIVALWILL
+	    "resource/announceribbon/announceicon/alarm_maxlevel.tga",      // ALARM_MAXLEVEL
+	    "resource/announceribbon/announceicon/alarm_professional.tga",  // ALARM_PROFESSIONAL
+	    "resource/announceribbon/announceicon/alarm_untouchable.tga",   // ALARM_UNTOUCHABLE
+	    "resource/announceribbon/announceicon/alarm_destruction.tga",   // ALARM_DESTRUCTION
+	    "resource/announceribbon/announceicon/alarm_termination.tga",   // ALARM_TERMINATION
+	    "resource/announceribbon/announceicon/alarm_rescue.tga",        // ALARM_RESCUE
+	    "resource/announceribbon/announceicon/alarm_combo.tga",         // ALARM_COMBO
+	    "resource/announceribbon/announceicon/alarm_alive.tga",         // ALARM_ALIVE
+	    "resource/announceribbon/announceicon/alarm_noparashute.tga",   // ALARM_NOPARASHUTE
+	    "resource/announceribbon/announceicon/alarm_chickenchaser.tga", // ALARM_CHICKENCHASER
+	    "resource/announceribbon/announceicon/alarm_overrun.tga",       // ALARM_OVERRUN
+	    "resource/announceribbon/announceicon/alarm_attacker.tga",      // ALARM_ATTACKER
+	    "resource/announceribbon/announceicon/alarm_bestmoment.tga",    // ALARM_BESTMOMENT
+	    "resource/announceribbon/announceicon/alarm_holdout.tga",       // ALARM_HOLDOUT
+	    "resource/announceribbon/announceicon/alarm_batpull.tga",       // ALARM_BATPULL
+	    "resource/announceribbon/announceicon/alarm_dropweapon.tga",    // ALARM_DROPWEAPON
+	    "resource/announceribbon/announceicon/alarm_hide.tga",          // ALARM_HIDE
+	    "resource/announceribbon/announceicon/alarm_healer.tga"         // ALARM_HEALER
+	};
+
+
+
+};
+
+
 
 
 //
@@ -1122,6 +1349,8 @@ public:
 	CHudWinImage m_WinImage;
 	CHudSpeedometer m_SpeedoMeter;
 	SoundManager m_SoundManager;
+	CHudAnnouncerIcon m_AnnouncerIcon;
+	TextureManager m_TextureManager;
 	// user messages
 	CHudMsgFunc(Damage);
 	CHudMsgFunc(GameMode);
