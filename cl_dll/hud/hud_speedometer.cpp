@@ -35,7 +35,7 @@ int CHudSpeedometer::VidInit( )
 
 	return 1;
 }
-void CHudSpeedometer::DrawNumberForSpeedoMeter( int number, float x, float y, int r, int g, int b, int a,int textureID )
+void CHudSpeedometer::DrawNumber( int number, float x, float y, int r, int g, int b, int a,int textureID, int w, int h)
 {
 	int textureWidth  = 512;
 	int textureHeight = 64;
@@ -46,11 +46,11 @@ void CHudSpeedometer::DrawNumberForSpeedoMeter( int number, float x, float y, in
 	int len = strlen( numberStr );
 	float widthScale  = 1.0f;
 	float heightScale = 1.0f;
-	int scaledSpacing = (int)( hud_speedometer_texture_width->value * widthScale );
+	int scaledSpacing = (int)( w * widthScale );
 	int totalWidth    = len * ( digitWidth + scaledSpacing ) - scaledSpacing;
 
 	float startX = x - totalWidth / 2.0f;
-	float startY = y - ( digitHeight + hud_speedometer_texture_height->value ) / 2.0f;
+	float startY = y - ( digitHeight + h ) / 2.0f;
 
 
 	for ( int i = 0; i < len; ++i )
@@ -59,7 +59,7 @@ void CHudSpeedometer::DrawNumberForSpeedoMeter( int number, float x, float y, in
 		int digitIndex = digit;
 		float digitX   = startX + i * ( digitWidth + scaledSpacing );
 		float digitY   = startY;
-		DrawUtils::Draw2DQuad2( digitX, digitY, digitWidth + hud_speedometer_texture_width->value, digitHeight + hud_speedometer_texture_height->value, (float)digitIndex / 10.0f, 0.0f, (float)( digitIndex + 1 ) / 10.0f, 1.0f, textureID, r, g, b, a );
+		DrawUtils::Draw2DQuad2( digitX, digitY, digitWidth + w, digitHeight + h, (float)digitIndex / 10.0f, 0.0f, (float)( digitIndex + 1 ) / 10.0f, 1.0f, textureID, r, g, b, a );
 	}
 }
 int CHudSpeedometer::Draw( float time )
@@ -83,7 +83,7 @@ int CHudSpeedometer::Draw( float time )
 	}
 	else if ( hud_speedometer->value == 2 )
 	{
-		DrawNumberForSpeedoMeter(m_iSpeed,ScreenWidth / 2 + hud_speedometer_x->value,ScreenHeight / 2 + hud_speedometer_y->value, hud_speedometer_red->value,hud_speedometer_green->value,hud_speedometer_blue->value,255, textureID);
+		DrawNumber(m_iSpeed,ScreenWidth / 2 + hud_speedometer_x->value,ScreenHeight / 2 + hud_speedometer_y->value, hud_speedometer_red->value,hud_speedometer_green->value,hud_speedometer_blue->value,255, textureID, hud_speedometer_texture_width->value,hud_speedometer_texture_height->value);
 	}
 	else
 	{

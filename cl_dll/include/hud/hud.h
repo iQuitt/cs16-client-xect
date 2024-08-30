@@ -558,7 +558,7 @@ class TextureManager
 		textureList.push_back( { textureID, duration, currentTime, 0.0f } );
 	}
 
-	void Update( float currentTime )
+	void Update( float currentTime )	
 	{
 		
 		if ( !textureList.empty( ) )
@@ -1051,7 +1051,7 @@ class CHudSpeedometer : public CHudBase
   public:
 	virtual int Init( );
 	virtual int VidInit( );
-	void DrawNumberForSpeedoMeter( int number, float x, float y, int r, int g, int b, int a, int textureID );
+	void DrawNumber( int number, float x, float y, int r, int g, int b, int a, int textureID,int w, int h );
 	virtual int Draw( float flTime );
 	void UpdateSpeed( const float velocity[2] );
 	int current_texture_type;

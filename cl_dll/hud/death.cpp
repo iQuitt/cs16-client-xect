@@ -574,9 +574,9 @@ int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *p
 				if ( !g_PlayerExtraInfo[killer].dead && idx == killer )
 				{
 					m_showKill = true;
-					    DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_THELAST], "Supply", gHUD.m_flTime );
+					DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_THELAST], "Supply", gHUD.m_flTime );
 				}
-			}
+			
 			else if ( ( gHUD.m_Scoreboard.m_iTeamAlive_T ) == 1 && g_PlayerExtraInfo[killer].teamnumber == 2 )
 			{
 				if ( !g_PlayerExtraInfo[killer].dead && idx == killer )
