@@ -48,6 +48,7 @@ static int DEATHNOTICE_DISPLAY_TIME = 6;
 #define DEATHNOTICE_TOP		32
 
 int announcerBackground;
+int announcerLogobg;
 int m_lastSoldier[2];
 
 DeathNoticeItem rgDeathNoticeList[ MAX_DEATHNOTICES + 1 ];
@@ -157,6 +158,7 @@ int CHudDeathNotice :: VidInit( void )
 		}
 	}
 	announcerBackground = gRenderAPI.GL_LoadTexture( "resource/announceribbon/announceicon/alarm_bg.tga", NULL, 0, TF_NEAREST | TF_NOPICMIP | TF_NOMIPMAP | TF_CLAMP );
+	announcerLogobg     = gRenderAPI.GL_LoadTexture( "resource/announceribbon/announceicon/alarm_logobg.tga", NULL, 0, TF_NEAREST | TF_NOPICMIP | TF_NOMIPMAP | TF_CLAMP );
 	m_HUD_d_skull = gHUD.GetSpriteIndex( "d_skull" );
 	m_HUD_d_headshot = gHUD.GetSpriteIndex( "d_headshot" );
 	m_KM_Number0     = gHUD.GetSpriteIndex( "KM_Number0" );
@@ -173,7 +175,7 @@ int CHudDeathNotice :: VidInit( void )
 
 int CHudDeathNotice :: Draw( float flTime )
 {
-	int x, y, r, g, b, i;
+	int x, y, r, g, b, i,ylbg,xlbg;
 
 	for( i = 0; i < MAX_DEATHNOTICES; i++ )
 	{
@@ -273,7 +275,19 @@ int CHudDeathNotice :: Draw( float flTime )
 							int textureWidth    = 94;
 							int textureHeight   = 94;
 
-							DrawUtils::Draw2DQuad2( ScreenWidth / 2, ScreenHeight / 2 - 50 , textureWidth, textureHeight, 0.0f, 0.0f, 1.0f, 1.0f, currentTexture.textureID, 255, 255, 255, currentTexture.alpha * 255 );
+					        y = ( 25.0 * 0.01 * ScreenHeight ) - textureWidth  * 0.5;
+					        x = ( 50.0 * 0.01 * ScreenWidth ) - textureWidth  * 0.5;
+
+					        int ybg = ( 25.0 * 0.01 * ScreenHeight ) - 307 + 360 * 0.5;
+					        int xbg = ( 50.0 * 0.01 * ScreenWidth ) - 248 + 185 * 0.5;
+
+							
+							ylbg = ( 25.0 * 0.01 * ScreenHeight ) - 94 + 300 * 0.5;
+					        xlbg = ( 50.0 * 0.01 * ScreenWidth ) - 94 - 170 * 0.5;
+							// TOOD: add text on logobg via using VGUI2 or Imgui
+							DrawUtils::Draw2DQuad2( xbg, ybg , 307 /*widthbg*/, 248 /*heightbg*/, 0.0f, 0.0f, 1.0f, 1.0f, announcerBackground, 255, 255, 255, 255 );
+					        DrawUtils::Draw2DQuad2( xlbg, ylbg, 358, 31, 0.0f, 0.0f, 1.0f, 1.0f, announcerLogobg, 255, 255, 255, 255 );
+							DrawUtils::Draw2DQuad2( x,y, textureWidth, textureHeight, 0.0f, 0.0f, 1.0f, 1.0f, currentTexture.textureID, 255, 255, 255, currentTexture.alpha * 255 );
 						}
 					}
 				if ( alpha > 0 && gHUD.m_AnnouncerIcon.hud_killfx->value == 1 )
@@ -396,39 +410,32 @@ int CHudDeathNotice :: Draw( float flTime )
 }
 
 // This message handler may be better off elsewhere
-int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *pbuf )
+int CHudDeathNotice::MsgFunc_DeathMsg( const char *pszName, int iSize, void *pbuf )
 {
 	m_iFlags |= HUD_DRAW;
 
 	BufferReader reader( pszName, pbuf, iSize );
 
-	int killer = reader.ReadByte();
-	int victim = reader.ReadByte();
-	int headshot = reader.ReadByte();
+	int killer     = reader.ReadByte( );
+	int victim     = reader.ReadByte( );
+	int headshot   = reader.ReadByte( );
 	int multiKills = 0;
-	int idx       = gEngfuncs.GetLocalPlayer( )->index;
+	int idx        = gEngfuncs.GetLocalPlayer( )->index;
 
 	char killedwith[32];
-	strncpy( killedwith, "d_", sizeof(killedwith) );
-	strcat( killedwith, reader.ReadString() );
+	strncpy( killedwith, "d_", sizeof( killedwith ) );
+	strcat( killedwith, reader.ReadString( ) );
 
-	//if (gViewPort)
-	//	gViewPort->DeathMsg( killer, victim );
 	gHUD.m_Scoreboard.DeathMsg( killer, victim );
+	gHUD.m_Spectator.DeathMessage( victim );
 
-	gHUD.m_Spectator.DeathMessage(victim);
-
-
-	
 	if ( !strcmp( killedwith, "d_knife" ) )
 	{
 		if ( killer == idx )
 		{
-			m_showIcon     = true;
-			m_iconIndex    = 2;
+			m_showIcon  = true;
+			m_iconIndex = 2;
 			DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_KNIFE], "Humililation", gHUD.m_flTime );
-
-
 		}
 
 		if ( victim == idx )
@@ -440,17 +447,16 @@ int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *p
 		}
 	}
 
-
 	int first = 0, back = 0, kingmaker = 1;
 	int count[2]{ };
 	for ( int i = 0; i < 33; i++ )
 	{
-		if ( g_PlayerExtraInfo[i].teamnumber == g_PlayerExtraInfo[victim].teamnumber  )
+		if ( g_PlayerExtraInfo[i].teamnumber == g_PlayerExtraInfo[victim].teamnumber )
 		{
-			if ( !( ( g_PlayerInfoList[first].name && g_PlayerInfoList[first].name[0] != 0 ) ) )
+			if ( !( g_PlayerInfoList[first].name && g_PlayerInfoList[first].name[0] != 0 ) )
 				    first = i;
 
-			if ( !( ( g_PlayerInfoList[back].name && g_PlayerInfoList[back].name[0] != 0 ) ) )
+			if ( !( g_PlayerInfoList[back].name && g_PlayerInfoList[back].name[0] != 0 ) )
 				    back = i;
 
 			if ( g_PlayerExtraInfo[i].frags < g_PlayerExtraInfo[back].frags )
@@ -466,7 +472,6 @@ int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *p
 		}
 	}
 
-
 	if ( killer == idx && victim != idx )
 	{
 		m_killNums++;
@@ -475,78 +480,72 @@ int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *p
 
 		if ( headshot )
 		{
-			m_showIcon     = true;
-			m_iconIndex    = 1;
+			m_showIcon                       = true;
+			m_iconIndex                      = 1;
 			gHUD.m_AnnouncerIcon.m_iHeadshot = true;
 			DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_HEADSHOT], "Headshot", gHUD.m_flTime );
 		}
 
 		if ( !strcmp( killedwith, "d_grenade" ) )
 		{
-			m_showIcon     = true;
-			m_iconIndex    = 3;
+			m_showIcon  = true;
+			m_iconIndex = 3;
 			DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_GRENADE], "GotIt", gHUD.m_flTime );
-
 		}
 
 		switch ( m_multiKills )
 		{
-			case 1:
-				m_showKill = true;
-				DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_FIRSTBLOOD], "FirstKill", gHUD.m_flTime );
-				break;
-			case 2:
-			    m_showKill = true;
-				DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_2KILL], "DoubleKill", gHUD.m_flTime );
-				break;
-			case 3:
-			    m_showKill = true;
-				DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_3KILL], "TripleKill", gHUD.m_flTime );
-				break;
-			case 4:
-			    m_showKill = true;
-				DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_4KILL], "MultiKill", gHUD.m_flTime );
-				break;
-
+		case 1:
+			m_showKill = true;
+			DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_FIRSTBLOOD], "FirstKill", gHUD.m_flTime );
+			break;
+		case 2:
+			m_showKill = true;
+			DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_2KILL], "DoubleKill", gHUD.m_flTime );
+			break;
+		case 3:
+			m_showKill = true;
+			DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_3KILL], "TripleKill", gHUD.m_flTime );
+			break;
+		case 4:
+			m_showKill = true;
+			DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_4KILL], "MultiKill", gHUD.m_flTime );
+			break;
 		}
 
-		
 		switch ( m_killNums )
 		{
-
-			case 5:
-				m_showKill = true;
-				DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_EXCELLENT], "Excellent", gHUD.m_flTime );
-				break;
-			case 10:
-				m_showKill = true;
-			    DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_INCREDIBLE], "Incredible", gHUD.m_flTime );
-				break;
-			case 15:
-			    DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_CRAZY], "Crazy", gHUD.m_flTime );
-				m_showKill = true;
-				break;
-			case 20:
-			    DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_CANTBELIEVE], "CantBelieve", gHUD.m_flTime );
-				m_showKill = true;
-				break;
-			case 25:
-				m_showKill = true;
-				DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_OUTOFWORLD], "OutOfWorld", gHUD.m_flTime );
-				break;
-
+		case 5:
+			m_showKill = true;
+			DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_EXCELLENT], "Excellent", gHUD.m_flTime );
+			break;
+		case 10:
+			m_showKill = true;
+			DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_INCREDIBLE], "Incredible", gHUD.m_flTime );
+			break;
+		case 15:
+			DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_CRAZY], "Crazy", gHUD.m_flTime );
+			m_showKill = true;
+			break;
+		case 20:
+			DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_CANTBELIEVE], "CantBelieve", gHUD.m_flTime );
+			m_showKill = true;
+			break;
+		case 25:
+			m_showKill = true;
+			DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_OUTOFWORLD], "OutOfWorld", gHUD.m_flTime );
+			break;
 		}
-		
-		if (gHUD.m_AnnouncerIcon.m_iPayback)
-		{
-			m_showKill                      = true;
-			    DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_PAYBACK], "Supply", gHUD.m_flTime );
-		}
-		if (gHUD.m_AnnouncerIcon.m_iLastLocalAlive)
+
+		if ( gHUD.m_AnnouncerIcon.m_iPayback )
 		{
 			m_showKill = true;
-			    DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_LASTSOLDIER], "Supply", gHUD.m_flTime );
-
+			DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_PAYBACK], "Supply", gHUD.m_flTime );
+		}
+		if ( gHUD.m_AnnouncerIcon.m_iLastLocalAlive )
+		{
+			m_showKill = true;
+			DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_LASTSOLDIER], "Supply", gHUD.m_flTime );
 		}
 
 		if ( first == victim && g_PlayerExtraInfo[first].frags != g_PlayerExtraInfo[back].frags )
@@ -555,7 +554,6 @@ int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *p
 			{
 				    m_showKill = true;
 				    DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_KINGMURDER], "Supply", gHUD.m_flTime );
-
 			}
 		}
 
@@ -565,26 +563,26 @@ int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *p
 			{
 				    m_showKill = true;
 				    DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_BACKMARKER], "Supply", gHUD.m_flTime );
-			}	
+			}
 		}
-		if ( ( gHUD.m_Scoreboard.m_iTeamAlive_CT ) == 1 || ( gHUD.m_Scoreboard.m_iTeamAlive_T ) == 1 )
-		{
-			if ( ( gHUD.m_Scoreboard.m_iTeamAlive_CT ) == 1 && g_PlayerExtraInfo[killer].teamnumber == 1 )
-			{
-				if ( !g_PlayerExtraInfo[killer].dead && idx == killer )
-				{
-					m_showKill = true;
-					DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_THELAST], "Supply", gHUD.m_flTime );
-				}
-			
-			else if ( ( gHUD.m_Scoreboard.m_iTeamAlive_T ) == 1 && g_PlayerExtraInfo[killer].teamnumber == 2 )
-			{
-				if ( !g_PlayerExtraInfo[killer].dead && idx == killer )
-				{
-					m_showKill = true;
-					    DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_THELAST], "Supply", gHUD.m_flTime );
+	}
 
-				}
+	if ( ( gHUD.m_Scoreboard.m_iTeamAlive_CT ) == 1 || ( gHUD.m_Scoreboard.m_iTeamAlive_T ) == 1 )
+	{
+		if ( ( gHUD.m_Scoreboard.m_iTeamAlive_CT ) == 1 && g_PlayerExtraInfo[killer].teamnumber == 1 )
+		{
+			if ( !g_PlayerExtraInfo[killer].dead && idx == killer )
+			{
+				    m_showKill = true;
+				    DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_THELAST], "Supply", gHUD.m_flTime );
+			}
+		}
+		else if ( ( gHUD.m_Scoreboard.m_iTeamAlive_T ) == 1 && g_PlayerExtraInfo[killer].teamnumber == 2 )
+		{
+			if ( !g_PlayerExtraInfo[killer].dead && idx == killer )
+			{
+				    m_showKill = true;
+				    DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_THELAST], "Supply", gHUD.m_flTime );
 			}
 		}
 	}
@@ -593,22 +591,21 @@ int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *p
 	{
 		for ( int i = 0; i < 33; i++ )
 		{
-			if ( !( ( g_PlayerInfoList[i].name && g_PlayerInfoList[i].name[0] != 0 ) ) )
-				continue;
+			if ( !( g_PlayerInfoList[i].name && g_PlayerInfoList[i].name[0] != 0 ) )
+				    continue;
 
 			if ( ( ( gHUD.m_Scoreboard.m_iTeamAlive_T - 1 ) == 1 && g_PlayerExtraInfo[i].teamnumber == 1 && m_lastSoldier[0] ) || ( ( gHUD.m_Scoreboard.m_iTeamAlive_CT - 1 == 1 ) && g_PlayerExtraInfo[i].teamnumber == 2 && !m_lastSoldier[1] ) )
 			{
-				if ( idx == i )
-				{
-					m_showKill = true;
-					DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_LASTSOLDIER], "Supply", gHUD.m_flTime );
-				}
-				m_lastSoldier[g_PlayerExtraInfo[i].teamnumber - 1] = 1;
-				break;
+				    if ( idx == i )
+				    {
+					    m_showKill = true;
+					    DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_LASTSOLDIER], "Supply", gHUD.m_flTime );
+				    }
+				    m_lastSoldier[g_PlayerExtraInfo[i].teamnumber - 1] = 1;
+				    break;
 			}
 		}
 	}
-
 
 	int i;
 	for ( i = 0; i < MAX_DEATHNOTICES; i++ )
@@ -617,60 +614,55 @@ int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *p
 			break;
 	}
 	if ( i == MAX_DEATHNOTICES )
-	{ // move the rest of the list forward to make room for this item
-		memmove( rgDeathNoticeList, rgDeathNoticeList+1, sizeof(DeathNoticeItem) * MAX_DEATHNOTICES );
+	{
+		memmove( rgDeathNoticeList, rgDeathNoticeList + 1, sizeof( DeathNoticeItem ) * MAX_DEATHNOTICES );
 		i = MAX_DEATHNOTICES - 1;
 	}
 
-	//if (gViewPort)
-		//gViewPort->GetAllPlayersInfo();
-	gHUD.m_Scoreboard.GetAllPlayersInfo();
+	gHUD.m_Scoreboard.GetAllPlayersInfo( );
 
-	// Get the Killer's name
-	const char *killer_name = g_PlayerInfoList[ killer ].name;
+	const char *killer_name = g_PlayerInfoList[killer].name;
 	if ( !killer_name )
 	{
-		killer_name = "";
+		killer_name                      = "";
 		rgDeathNoticeList[i].szKiller[0] = 0;
 	}
 	else
 	{
 		rgDeathNoticeList[i].KillerColor = GetClientColor( killer );
 		strncpy( rgDeathNoticeList[i].szKiller, killer_name, MAX_PLAYER_NAME_LENGTH );
-		rgDeathNoticeList[i].szKiller[MAX_PLAYER_NAME_LENGTH-1] = 0;
+		rgDeathNoticeList[i].szKiller[MAX_PLAYER_NAME_LENGTH - 1] = 0;
 	}
 
-	// Get the Victim's name
-	const char *victim_name = NULL;
-	// If victim is -1, the killer killed a specific, non-player object (like a sentrygun)
-	if ( ((char)victim) != -1 )
-		victim_name = g_PlayerInfoList[ victim ].name;
+ const char *victim_name = NULL;
+	if ( ( (char)victim ) != -1 )
+		victim_name = g_PlayerInfoList[victim].name;
 	if ( !victim_name )
 	{
-		victim_name = "";
+		victim_name                      = "";
 		rgDeathNoticeList[i].szVictim[0] = 0;
 	}
 	else
 	{
 		rgDeathNoticeList[i].VictimColor = GetClientColor( victim );
 		strncpy( rgDeathNoticeList[i].szVictim, victim_name, MAX_PLAYER_NAME_LENGTH );
-		rgDeathNoticeList[i].szVictim[MAX_PLAYER_NAME_LENGTH-1] = 0;
+		rgDeathNoticeList[i].szVictim[MAX_PLAYER_NAME_LENGTH - 1] = 0;
 	}
 
 	// Is it a non-player object kill?
-	if ( ((char)victim) == -1 )
+	if ( ( (char)victim ) == -1 )
 	{
 		rgDeathNoticeList[i].bNonPlayerKill = true;
 
 		// Store the object's name in the Victim slot (skip the d_ bit)
-		strncpy( rgDeathNoticeList[i].szVictim, killedwith+2, sizeof(killedwith) );
+		strncpy( rgDeathNoticeList[i].szVictim, killedwith + 2, sizeof( killedwith ) );
 	}
 	else
 	{
 		if ( killer == victim || killer == 0 )
 			rgDeathNoticeList[i].bSuicide = true;
 
-		if ( !strncmp( killedwith, "d_teammate", sizeof(killedwith)  ) )
+		if ( !strncmp( killedwith, "d_teammate", sizeof( killedwith ) ) )
 			rgDeathNoticeList[i].bTeamKill = true;
 	}
 
@@ -693,8 +685,7 @@ int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *p
 
 	rgDeathNoticeList[i].flDisplayTime = gHUD.m_flTime + hud_deathnotice_time->value;
 
-
-	if (rgDeathNoticeList[i].bNonPlayerKill)
+	if ( rgDeathNoticeList[i].bNonPlayerKill )
 	{
 		ConsolePrint( rgDeathNoticeList[i].szKiller );
 		ConsolePrint( " killed a " );
@@ -708,13 +699,13 @@ int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *p
 		{
 			ConsolePrint( rgDeathNoticeList[i].szVictim );
 
-			if ( !strncmp( killedwith, "d_world", sizeof(killedwith)  ) )
+			if ( !strncmp( killedwith, "d_world", sizeof( killedwith ) ) )
 			{
-				ConsolePrint( " died" );
+				    ConsolePrint( " died" );
 			}
 			else
 			{
-				ConsolePrint( " killed self" );
+				    ConsolePrint( " killed self" );
 			}
 		}
 		else if ( rgDeathNoticeList[i].bTeamKill )
@@ -725,30 +716,27 @@ int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *p
 		}
 		else
 		{
-			if( headshot )
-				ConsolePrint( "*** ");
+			if ( headshot )
+				    ConsolePrint( "*** " );
 			ConsolePrint( rgDeathNoticeList[i].szKiller );
 			ConsolePrint( " killed " );
 			ConsolePrint( rgDeathNoticeList[i].szVictim );
 		}
 
-		if ( *killedwith && (*killedwith > 13 ) && strncmp( killedwith, "d_world", sizeof(killedwith) ) && !rgDeathNoticeList[i].bTeamKill )
+		if ( *killedwith && ( *killedwith > 13 ) && strncmp( killedwith, "d_world", sizeof( killedwith ) ) && !rgDeathNoticeList[i].bTeamKill )
 		{
 			if ( headshot )
-				ConsolePrint(" with a headshot from ");
+				    ConsolePrint( " with a headshot from " );
 			else
-				ConsolePrint(" with ");
+				    ConsolePrint( " with " );
 
-			ConsolePrint( killedwith+2 ); // skip over the "d_" part
+			ConsolePrint( killedwith + 2 ); // skip over the "d_" part
 		}
 
-		if( headshot ) ConsolePrint( " ***");
+		if ( headshot )
+			ConsolePrint( " ***" );
 		ConsolePrint( "\n" );
 	}
 
 	return 1;
 }
-
-
-
-
