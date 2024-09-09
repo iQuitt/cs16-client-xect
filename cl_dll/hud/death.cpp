@@ -133,6 +133,7 @@ void CHudDeathNotice :: Reset( void )
 	m_killEffectTime = 0;
 	m_killIconTime   = 0;
 	gHUD.m_AnnouncerIcon.m_iHeadshot = false;
+	gHUD.m_SoundManager.Reset( );
 }
 
 

@@ -517,6 +517,17 @@ class SoundManager
 			lastSoundTime = currentTime;
 		}
 	}
+	void Reset( )
+	{
+		front         = 0;
+		rear          = -1;
+		count         = 0;
+		lastSoundTime = 0;
+		for ( int i = 0; i < MAX_SOUNDS; i++ )
+		{
+			soundQueue[i][0] = '\0';
+		}
+	}
 
   private:
 	void PlaySound( const char *sound )
