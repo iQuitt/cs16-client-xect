@@ -111,6 +111,11 @@ int CHudDeathNotice :: Init( void )
 	hud_killeffect_display_time = CVAR_CREATE( "hud_killeffect_display_time", "3", FCVAR_ARCHIVE );
 	gHUD.m_AnnouncerIcon.hud_killfx                  = gEngfuncs.pfnRegisterVariable( "hud_killfx", "1", FCVAR_ARCHIVE ); // 1 old cso killfx // 2 new cso killfx // 3 Crossfire Killfx
 	gHUD.m_CHudCFMarks.hud_crossfire_killmark_type = gEngfuncs.pfnRegisterVariable( "hud_crossfire_killmark_type", "1", FCVAR_ARCHIVE );
+	// 1 default, 2 15th anniversary, 3 Angelic Beast, 4 Armored Beast, 5 Blueneon, 6 Bornbeast2, 7 Bornbeast2NG, 8 CFS_2019, 9 CHAMPQ9, 10 christimas
+	// 11 Christmas two, 12 Demonic Beast, 13 Disco, 14 Dominator, 15 Fury Beast, 16 Fury BeastNG,17 Gaming Glory, 18 Halloween, 19 Halloween 2, 20 Hero,
+	//21 IronBeast2, 22 IronBeast2NG, 23 Kar98k Satelite, 24 M82A1 Angelic Beast, 25 M82A1 Demonic Beast, 26 New Year 27  Nightmare, 28 Rankmach19, 29 Rankmach19 two, 30 Rankmach25
+	// 31 Rankmach25 two, 32 Rankmach26, 33 Rankmach26 Two, 34 Rankmach26 Three, 35 Reactive Armor Set, 36 Red Nano, 37 Summer, 38 Summer 2, 39 TianShen, 40 ValorBeast
+
 
 	m_iFlags = 0;
 
