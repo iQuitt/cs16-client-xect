@@ -434,6 +434,8 @@ int CHudDeathNotice :: Draw( float flTime )
 								killMark = static_cast< CHudCFMarks::Marks_Type >( baseEnum + 17 );
 								width     = 185;
 								height    = 48;
+							    gHUD.m_AnnouncerIcon.m_iPayback = false;
+
 							}
 						    
 
@@ -573,6 +575,7 @@ int CHudDeathNotice :: Draw( float flTime )
 		m_showIcon = false;
 		gHUD.m_AnnouncerIcon.m_iHeadshot = false;
 		gHUD.m_CHudCFMarks.m_lastKill    = false;
+
 
 	}
 	
@@ -831,13 +834,14 @@ int CHudDeathNotice::MsgFunc_DeathMsg( const char *pszName, int iSize, void *pbu
 				}
 
 				DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_CHudCFMarks.markTextures[killMark], 158, 158, ( gHUD.m_CHudCFMarks.iTeam == TEAM_TERRORIST ) ? "crossfire/man/Headshot_T" : "crossfire/man/Headshot_CT", gHUD.m_flTime, true );
+				return true;
 			}
-			return true;
+			else
+			{
+				DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_HEADSHOT], 94, 94, "Headshot", gHUD.m_flTime );
+			}	
 		}
-		else
-		{
-			DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_HEADSHOT], 94, 94, "Headshot", gHUD.m_flTime );
-		}
+
 
 		if ( !strcmp( killedwith, "d_grenade" ) )
 		{
@@ -1035,6 +1039,9 @@ int CHudDeathNotice::MsgFunc_DeathMsg( const char *pszName, int iSize, void *pbu
 		{
 			m_showKill = true;
 			DrawKillFX( gHUD.m_AnnouncerIcon.hud_killfx->value, gHUD.m_AnnouncerIcon.announceTextures[CHudAnnouncerIcon::Alarm_Type::ALARM_PAYBACK], 94, 94, "Supply", gHUD.m_flTime );
+			gHUD.m_AnnouncerIcon.m_iPayback = false;
+
+			
 		}
 		if ( gHUD.m_AnnouncerIcon.m_iLastLocalAlive )
 		{
