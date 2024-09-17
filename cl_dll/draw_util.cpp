@@ -268,7 +268,6 @@ int DrawUtils::DrawHudNumber2( int x, int y, int iNumber, int r, int g, int b )
 }
 void DrawUtils::Draw2DQuad2( float x, float y, float w, float h, float s1, float t1, float s2, float t2, int texnum, int r, int g ,int b , int a )
 {
-
 	gEngfuncs.pTriAPI->Color4ub( r, g, b, a );
 	gEngfuncs.pTriAPI->RenderMode( kRenderTransTexture );
 

@@ -491,6 +491,7 @@ int CHudScoreboard :: MsgFunc_TeamInfo( const char *pszName, int iSize, void *pb
 	BufferReader reader( pszName, pbuf, iSize );
 	short cl = reader.ReadByte();
 	int teamNumber = 0;
+	cl_entity_s *pLocal = gEngfuncs.GetLocalPlayer( );
 
 	if ( cl > 0 && cl <= MAX_PLAYERS )
 	{
@@ -498,14 +499,26 @@ int CHudScoreboard :: MsgFunc_TeamInfo( const char *pszName, int iSize, void *pb
 		char teamName[MAX_TEAM_NAME];
 		strncpy( teamName, reader.ReadString(), MAX_TEAM_NAME );
 
-		if( !strcmp( teamName, "TERRORIST") )
-			teamNumber = TEAM_TERRORIST;
-		else if( !strcmp( teamName, "CT") )
+		if ( !strcmp( teamName, "TERRORIST" ) )
+		{
+			teamNumber               = TEAM_TERRORIST;
+			if ( cl == pLocal->index )
+				gHUD.m_CHudCFMarks.iTeam = TEAM_TERRORIST;
+		}
+		else if ( !strcmp( teamName, "CT" ) )
+		{
 			teamNumber = TEAM_CT;
+			if ( cl == pLocal->index )
+				gHUD.m_CHudCFMarks.iTeam = TEAM_CT;
+
+		}
 		else if( !strcmp( teamName, "SPECTATOR" ) || !strcmp( teamName, "UNASSIGNED" ) )
 		{
 			teamNumber = TEAM_SPECTATOR;
 			strncpy( teamName, "SPECTATOR", MAX_TEAM_NAME );
+
+			if ( cl == pLocal->index )
+				gHUD.m_CHudCFMarks.iTeam = TEAM_SPECTATOR;
 		}
 		// just in case
 		else teamNumber = TEAM_UNASSIGNED;
