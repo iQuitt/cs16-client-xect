@@ -1100,6 +1100,7 @@ void CStudioModelRenderer::StudioProcessGait(entity_state_t *pplayer)
 
 int CStudioModelRenderer::StudioDrawPlayer(int flags, entity_state_t *pplayer)
 {
+	cl_entity_s *ent;
 	m_pCurrentEntity = IEngineStudio.GetCurrentEntity();
 
 	IEngineStudio.GetTimes(&m_nFrameCount, &m_clTime, &m_clOldTime);
@@ -1118,7 +1119,6 @@ int CStudioModelRenderer::StudioDrawPlayer(int flags, entity_state_t *pplayer)
 
 	m_pStudioHeader = (studiohdr_t *)IEngineStudio.Mod_Extradata(m_pRenderModel);
 
-	IEngineStudio.StudioSetHeader(m_pStudioHeader);
 	IEngineStudio.SetRenderModel(m_pRenderModel);
 
 	if (pplayer->gaitsequence)

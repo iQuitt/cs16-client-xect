@@ -102,7 +102,7 @@ int CHudStatusIcons::MsgFunc_StatusIcon( const char *pszName, int iSize, void *p
 	{
 		DisableIcon( pszIconName );
 	}
-
+	
 	return 1;
 }
 
@@ -149,6 +149,7 @@ void CHudStatusIcons::EnableIcon( const char *pszIconName, unsigned char red, un
 		cl_entity_t *pthisplayer = gEngfuncs.GetLocalPlayer();
 		gEngfuncs.pEventAPI->EV_PlaySound( pthisplayer->index, pthisplayer->origin, CHAN_STATIC, "weapons/timer.wav", 1.0, ATTN_NORM, 0, PITCH_NORM );
 	}
+
 }
 
 void CHudStatusIcons::DisableIcon( const char *pszIconName )

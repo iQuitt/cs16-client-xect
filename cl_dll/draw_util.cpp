@@ -54,50 +54,65 @@ byte g_color_table[][4] =
 
 int DrawUtils::DrawHudString( int xpos, int ypos, int iMaxX, const char *str, int r, int g, int b, float scale, bool drawing )
 {
+	if ( str == NULL )
+		return xpos;
+
 	char *szIt = (char *)str;
 	// draw the string until we hit the null character or a newline character
-	for ( ; *szIt != 0 && *szIt != '\n'; szIt++ )
+	for ( ; *szIt != 0 && *szIt != '\n'; )
 	{
-		int next = xpos + gHUD.GetCharWidth((unsigned char)*szIt); // variable-width fonts look cool
+		int next = xpos + gHUD.GetCharWidth( (unsigned char)*szIt ); // variable-width fonts look cool
 		if ( next > iMaxX )
 			return xpos;
-
 		if ( *szIt == '\\' && *( szIt + 1 ) != '\n' && *( szIt + 1 ) != 0 )
 		{
 			// an escape character
-
-			switch ( *( ++szIt ) )
+			szIt++;
+			if ( *szIt == 0 )
+				break;
+			switch ( *szIt )
 			{
 			case 'y':
 				UnpackRGB( r, g, b, RGB_YELLOWISH );
+				szIt++;
 				continue;
 			case 'w':
 				r = g = b = 255;
+				szIt++;
 				continue;
 			case 'd':
+				szIt++;
 				continue;
 			case 'R':
-				//if( drawing ) return xpos;
-				//return DrawHudStringReverse( iMaxX, ypos, first_xpos, szIt, r, g, b, true ); // set 'drawing' to true, to stop when '\R' is catched
-				xpos = iMaxX - gHUD.GetCharWidth('M') * 10;
-				++szIt;
+				xpos = iMaxX - gHUD.GetCharWidth( 'M' ) * 10;
+				szIt++;
+				continue;
+			default:
+				szIt++;
+				continue;
 			}
 		}
-		else if( IsColorString( szIt ) )
+		else if ( IsColorString( szIt ) )
 		{
 			szIt++;
-			if( gHUD.hud_colored->value )
+			if ( *szIt == 0 )
+				break;
+			if ( gHUD.hud_colored->value )
 			{
 				r = g_color_table[ColorIndex( *szIt )][0];
 				g = g_color_table[ColorIndex( *szIt )][1];
 				b = g_color_table[ColorIndex( *szIt )][2];
 			}
+			szIt++;
 			continue;
 		}
 
-		xpos += TextMessageDrawChar( xpos, ypos, *szIt, r, g, b, scale );
+		if ( *szIt != 0 )
+		{
+			xpos += TextMessageDrawChar( xpos, ypos, *szIt, r, g, b, scale );
+			szIt++;
+		}
 	}
-
 	return xpos;
 }
 

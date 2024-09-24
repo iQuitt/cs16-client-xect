@@ -33,6 +33,10 @@
 #define DHN_DRAWZERO 1
 #define DHN_2DIGITS  2
 #define DHN_3DIGITS  4
+#define DHN_FILLZERO 8
+#define DHN_4DIGITS 16
+#define DHN_5DIGITS 32
+#define MIN_ALPHA 100
 
 
 class DrawUtils

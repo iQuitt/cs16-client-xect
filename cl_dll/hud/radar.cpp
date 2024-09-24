@@ -46,6 +46,7 @@ DECLARE_MESSAGE( m_Radar, BombDrop )
 DECLARE_MESSAGE( m_Radar, BombPickup )
 
 
+
 static byte	r_RadarCross[8][8] =
 {
 {1,1,0,0,0,0,1,1},
@@ -487,28 +488,29 @@ Vector CHudRadar::WorldToRadar(const Vector vPlayerOrigin, const Vector vObjectO
 	return ret;
 }
 
-int CHudRadar::MsgFunc_BombDrop(const char *pszName, int iSize, void *pbuf)
+int CHudRadar::MsgFunc_BombDrop( const char *pszName, int iSize, void *pbuf )
 {
 	BufferReader reader( pszName, pbuf, iSize );
 
-	g_PlayerExtraInfo[33].origin.x = reader.ReadCoord();
-	g_PlayerExtraInfo[33].origin.y = reader.ReadCoord();
-	g_PlayerExtraInfo[33].origin.z = reader.ReadCoord();
+	g_PlayerExtraInfo[33].origin.x = reader.ReadCoord( );
+	g_PlayerExtraInfo[33].origin.y = reader.ReadCoord( );
+	g_PlayerExtraInfo[33].origin.z = reader.ReadCoord( );
 
-	g_PlayerExtraInfo[33].radarflashes = 99999;
-	g_PlayerExtraInfo[33].radarflashtime = gHUD.m_flTime;
+	g_PlayerExtraInfo[33].radarflashes        = 99999;
+	g_PlayerExtraInfo[33].radarflashtime      = gHUD.m_flTime;
 	g_PlayerExtraInfo[33].radarflashtimedelta = 0.5f;
-	strncpy(g_PlayerExtraInfo[33].teamname, "TERRORIST", MAX_TEAM_NAME);
-	g_PlayerExtraInfo[33].dead = false;
+	strncpy( g_PlayerExtraInfo[33].teamname, "TERRORIST", MAX_TEAM_NAME );
+	g_PlayerExtraInfo[33].dead      = false;
 	g_PlayerExtraInfo[33].nextflash = true;
 
-	int Flag = reader.ReadByte();
+	int Flag                          = reader.ReadByte( );
 	g_PlayerExtraInfo[33].playerclass = Flag;
 
-	if( Flag ) // bomb planted
+	if ( Flag ) // bomb planted
 	{
+		gHUD.m_CHudCFMarks.m_bC4Planted    = true;
 		gHUD.m_SpectatorGui.m_bBombPlanted = 0;
-		gHUD.m_Timer.m_iFlags = 0;
+		gHUD.m_Timer.m_iFlags              = 0;
 	}
 	return 1;
 }

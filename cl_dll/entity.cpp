@@ -52,7 +52,6 @@ int DLLEXPORT HUD_AddEntity( int type, struct cl_entity_s *ent, const char *mode
 	// in spectator mode:
 	// each frame every entity passes this function, so the overview hooks 
 	// it to filter the overview entities
-
 	if ( g_iUser1 )
 	{
 		gHUD.m_Spectator.AddOverviewEntity( type, ent, modelname );

@@ -308,6 +308,8 @@ public:
 	int Draw( float flTime );
 
 	int DrawScoreboard( float flTime );
+	int DrawTopScoreBoard( float flTime );
+
 	int DrawTeams( float listslot );
 	int DrawPlayers( float listslot, int nameoffset = 0, const char *team = NULL ); // returns the ypos where it finishes drawing
 
@@ -316,6 +318,10 @@ public:
 	int MsgFunc_Account( const char *pszName, int iSize, void *pbuf );
 	void SetScoreboardDefaults( void );
 	void GetAllPlayersInfo( void );
+	inline int GetTeamAliveCounts( short teamnumber );
+	inline bool IsConnected( int playerIndex );
+	inline int GetTeamCounts( short teamnumber );
+
 
 	CHudUserCmd(ShowScores);
 	CHudUserCmd(HideScores);
@@ -333,6 +339,38 @@ public:
 	int m_iTeamScore_Max;
 	int m_iTeamScore_T, m_iTeamScore_CT;
 	int m_iTeamAlive_T, m_iTeamAlive_CT;
+
+
+	bool m_bTopScoreBoardEnabled;
+	int m_iBGIndex;
+	int m_iTextIndex;
+	int m_iTTextIndex, m_iCTTextIndex;
+
+	wrect_t m_rcNumber_Large[10];
+	wrect_t m_rcNumber_Small[10];
+
+	int m_iOriginalBG;
+	int m_iTeamDeathBG;
+	int m_iUnitehBG;
+	int m_iNum_L;
+	int m_iNum_S;
+	int m_iText_CT;
+	int m_iText_T;
+	int m_iText_TR;
+	int m_iText_HM;
+	int m_iText_ZB;
+	int m_iText_1st;
+	int m_iText_Kill;
+	int m_iText_Round;
+	bool m_bIsTeamplay;
+	float m_flNextCache;
+
+	void CacheTeamAliveNumber( void );
+	void BuildHudNumberRect( int moe, wrect_t *prc, int w, int h, int xOffset, int yOffset );
+	int DrawHudNumber( int moe, wrect_t *prc, int x, int y, int iFlags, int iNumber, int r, int g, int b );
+	int GetHudNumberWidth( int moe, wrect_t *prc, int iFlags, int iNumber );
+	cvar_t *hud_scoreboard;
+
 
 private:
 	int m_iLastKilledBy;
@@ -641,6 +679,43 @@ class TextureManager
 	}
 };
 
+
+class CHudCS2 : public CHudBase
+{
+	enum CS2Resources
+	{
+		CS2_ICO_D_57,
+		CS2_ICO_57,
+		CS2_ICO_AK47,
+		CS2_ICO_D_AK47,
+
+		CS2_ARMOR,
+		CS2_ARMOR_B,
+		CS2_BOMB_C4,
+		CS2_BOMB_ICON,
+		CS2_BULLET,
+		CS2_BULLET_H,
+		CS2_BULLET2,
+		CS2_BULLETPACK,
+		CS2_BUYZONE,
+		CS2_C4_TIMER,
+		CS2_DOLLAR_SIGN,
+		CS2_HEALTH_ICON,
+		CS2_HUDBG_CT,
+		CS2_HUDBG_TR,
+		CS2_ICO_ARMOR,
+		CS2_ICO_ARMORHELM,
+		CS2_ICO_DOLLAR,
+		CS2_ICO_HOSTAGE_ZONE,
+		CS2_ICO_BOMBZONE_A,
+		CS2_ICO_BOMBZONE_B,
+		CS2_TIMER,
+		CS2_WEAPONSLOT,
+		CS2_WEAPON_BG_ACTIVE,
+		CS2_WEAPON_BG_INACTIVE,
+		// to be continued...
+	};
+};
 class CHudCFMarks : public CHudBase
 {
   public:
@@ -652,6 +727,7 @@ class CHudCFMarks : public CHudBase
 	bool isAnimating    = false;
 	int iTeam;
 	bool m_lastKill;
+	bool m_bC4Planted;
 	const float ANIMATION_DURATION = 0.5f;
 	const float MIN_SCALE          = 0.5f;
 	const float MAX_SCALE          = 1.0f;
@@ -661,7 +737,7 @@ class CHudCFMarks : public CHudBase
 	std::vector< int > markTextures; // kill mark textureid
 	TextureManager textureManager;
 	cvar_t *hud_crossfire_killmark_type;
-
+	void CFupdateAnimation( float deltaTime );
 	enum Marks_Type
 	{
 		CF_MARK_EXPLOSIVE_C4, // Crossfire 15th aniversary kill marks
@@ -2290,6 +2366,8 @@ class CHudCFMarks : public CHudBase
 
 
 	};
+
+
 
 };
 

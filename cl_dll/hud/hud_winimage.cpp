@@ -8,8 +8,6 @@
 #include <stdio.h>
 #include "draw_util.h"
 
-
-
 int m_TeamWIN[4];
 bool m_ZombieMaps;
 
@@ -18,7 +16,7 @@ int CHudWinImage::Init( )
 	gHUD.AddHudElem( this );
 	m_iFlags |= HUD_DRAW;
 
-	hud_winimage = gEngfuncs.pfnRegisterVariable( "cl_winimage", "1", FCVAR_ARCHIVE );
+	hud_winimage = gEngfuncs.pfnRegisterVariable( "hud_winimage", "1", FCVAR_ARCHIVE );
 
 	m_TeamWIN[0] = gRenderAPI.GL_LoadTexture( "gfx/xgclient/trwin.tga", NULL, 0, TF_NEAREST | TF_NOPICMIP | TF_NOMIPMAP | TF_CLAMP );
 	m_TeamWIN[1] = gRenderAPI.GL_LoadTexture( "gfx/xgclient/ctwin.tga", NULL, 0, TF_NEAREST | TF_NOPICMIP | TF_NOMIPMAP | TF_CLAMP );
@@ -38,6 +36,7 @@ int CHudWinImage::VidInit( )
 
 void CHudWinImage::Think( float flTime)
 {
+
 
 	if ( m_flEndTime && m_flEndTime < flTime )
 	{
@@ -72,7 +71,6 @@ int CHudWinImage::Draw( float flTime )
 	{
 		if ( m_TeamWIN )
 		{
-
 			gRenderAPI.GL_Bind( 0, m_TeamWIN[0] );
 
 			DrawUtils::Draw2DQuadScaled( iX, iY * 0.35, iX + wide, iY * 0.35 + height );
@@ -82,7 +80,6 @@ int CHudWinImage::Draw( float flTime )
 	{
 		if ( m_TeamWIN )
 		{
-
 			gRenderAPI.GL_Bind( 0, m_TeamWIN[1] );
 
 			DrawUtils::Draw2DQuadScaled( iX, iY * 0.35, iX + wide, iY * 0.35 + height );

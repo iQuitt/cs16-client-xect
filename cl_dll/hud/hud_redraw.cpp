@@ -22,6 +22,7 @@
 
 #include <string>
 #include <cstdarg>
+#include <draw_util.h>
 
 #define MAX_LOGO_FRAMES 56
 
@@ -29,12 +30,14 @@
 #define DHN_2DIGITS 2
 #define DHN_3DIGITS 4
 #define MIN_ALPHA 100
+
 int grgLogoFrame[MAX_LOGO_FRAMES] = 
 {
 	1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 13, 13, 13, 13, 13, 12, 11, 10, 9, 8, 14, 15,
 	16, 17, 18, 19, 20, 20, 20, 20, 20, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 
 	29, 29, 29, 29, 29, 28, 27, 26, 25, 24, 30, 31 
 };
+
 
 
 extern int g_iVisibleMouse;
@@ -157,6 +160,7 @@ int CHud :: Redraw( float flTime, int intermission )
 		SPR_DrawAdditive(i, x, y, NULL);
 
 	}
+
 
 	return 1;
 }

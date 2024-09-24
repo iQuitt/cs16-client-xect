@@ -130,7 +130,7 @@ float randomFloat( float min, float max )
 	return min + static_cast< float >( rand( ) ) / ( static_cast< float >( RAND_MAX / ( max - min ) ) );
 }
 
-void CFupdateAnimation( float deltaTime )
+void CHudCFMarks::CFupdateAnimation( float deltaTime )
 {
 	if ( !gHUD.m_CHudCFMarks.isAnimating )
 		return;
@@ -155,44 +155,9 @@ void CFupdateAnimation( float deltaTime )
 	gHUD.m_CHudCFMarks.shakeOffsetY = shakeAmount * ( cos( shakePhase ) + randomFloat( -0.5f, 0.5f ) );
 }
 
-inline bool IsConnected( int playerIndex )
-{
-	return ( g_PlayerInfoList[playerIndex].name && g_PlayerInfoList[playerIndex].name[0] != 0 );
-}
 
-inline int GetTeamCounts( short teamnumber )
-{
-	int count = 0;
 
-	for ( int i = 1; i <= MAX_PLAYERS; i++ )
-	{
-		GetPlayerInfo( i, &g_PlayerInfoList[i] );
-		if ( !IsConnected( i ) )
-			continue;
 
-		if ( g_PlayerExtraInfo[i].teamnumber == teamnumber )
-			count++;
-	}
-
-	return count;
-}
-
-inline int GetTeamAliveCounts( short teamnumber )
-{
-	int count = 0;
-
-	for ( int i = 1; i <= MAX_PLAYERS; i++ )
-	{
-		GetPlayerInfo( i, &g_PlayerInfoList[i] );
-		if ( !IsConnected( i ) )
-			continue;
-
-		if ( g_PlayerExtraInfo[i].teamnumber == teamnumber && g_PlayerExtraInfo[i].dead == false )
-			count++;
-	}
-
-	return count;
-}
 void DrawKillFX( int killfx, int textureID, int width,int height, const char *soundName, float time, bool rowbyrow = false )
 {
 	if ( killfx == 3 && gHUD.m_AnnouncerIcon.hud_killfx->value == 3 && rowbyrow )
@@ -232,6 +197,7 @@ void CHudDeathNotice :: Reset( void )
 	m_killIconTime   = 0;
 	gHUD.m_CHudCFMarks.m_lastKill    = false;
 	gHUD.m_AnnouncerIcon.m_iHeadshot = false;
+	gHUD.m_CHudCFMarks.m_bC4Planted  = false;
 	gHUD.m_SoundManager.Reset( );
 }
 
@@ -258,7 +224,6 @@ int CHudDeathNotice :: VidInit( void )
 				}
 			}
 		}
-
 	};
 
 	// Load new CSO killfx textures
@@ -309,8 +274,8 @@ int CHudDeathNotice :: Draw( float flTime )
 		rgDeathNoticeList[i].flDisplayTime = min( rgDeathNoticeList[i].flDisplayTime, flTime + DEATHNOTICE_DISPLAY_TIME );
 
 
-		gHUD.m_Scoreboard.m_iTeamAlive_T  = GetTeamAliveCounts( TEAM_TERRORIST );
-		gHUD.m_Scoreboard.m_iTeamAlive_CT = GetTeamAliveCounts( TEAM_CT );
+		gHUD.m_Scoreboard.m_iTeamAlive_T  = gHUD.m_Scoreboard.GetTeamAliveCounts( TEAM_TERRORIST );
+		gHUD.m_Scoreboard.m_iTeamAlive_CT = gHUD.m_Scoreboard.GetTeamAliveCounts( TEAM_CT );
 		if ( gHUD.m_AnnouncerIcon.hud_killfx->value	)
 			gHUD.m_AnnouncerIcon.textureManager.Update( gHUD.m_flTime );
 
@@ -372,7 +337,7 @@ int CHudDeathNotice :: Draw( float flTime )
 		}
 	}
 
-	if ( ( m_showKill || m_killNums ) && gHUD.m_AnnouncerIcon.hud_killfx->value )
+	if ( ( m_showKill || m_killNums || gHUD.m_CHudCFMarks.m_bC4Planted ) && gHUD.m_AnnouncerIcon.hud_killfx->value )
 	{
 		m_killEffectTime            = min( m_killEffectTime, gHUD.m_flTime + KILLEFFECT_DISPLAY_TIME );
 
@@ -387,7 +352,7 @@ int CHudDeathNotice :: Draw( float flTime )
 					if ( gHUD.m_CHudCFMarks.textureManager.HasTextures( ) )
 					{
 						auto &currentTextureCF = gHUD.m_CHudCFMarks.textureManager.GetCurrentTexture( );
-						CFupdateAnimation( gHUD.m_flTimeDelta );
+						gHUD.m_CHudCFMarks.CFupdateAnimation( gHUD.m_flTimeDelta );
 
 						float ylbg = ( 25.0f * 0.01f * ScreenHeight ) - 158.0f + 1200 /*y*/ * 0.5f;
 						float xlbg = ( 50.0f * 0.01f * ScreenWidth ) - 158.0f + 200 /*x*/ * 0.5f;
@@ -418,12 +383,8 @@ int CHudDeathNotice :: Draw( float flTime )
 						    CHudCFMarks::Marks_Type baseEnum = killMarkStarts[killMarkType - 1];
 
 						    CHudCFMarks::Marks_Type killMark = static_cast< CHudCFMarks::Marks_Type >( baseEnum + 15 );
-						    //if ( m_multiKills == 1 )
-						    //{
+						  
 
-							   // textureID = gHUD.m_CHudCFMarks.markTextures[CHudCFMarks::Marks_Type::CF_MARK_FIRSTBLOOD];
-	
-						    //}
 						    if ( gHUD.m_CHudCFMarks.m_lastKill )
 						    {
 							    killMark = static_cast< CHudCFMarks::Marks_Type >( baseEnum + 16 );
@@ -437,7 +398,7 @@ int CHudDeathNotice :: Draw( float flTime )
 							    gHUD.m_AnnouncerIcon.m_iPayback = false;
 
 							}
-						    
+
 
 						    DrawUtils::Draw2DQuad2( x, y, width, height, 0.0f, 0.0f, 1.0f, 1.0f, gHUD.m_CHudCFMarks.markTextures[killMark], 255, 255, 255, 255 );
 					    }
@@ -575,6 +536,10 @@ int CHudDeathNotice :: Draw( float flTime )
 		m_showIcon = false;
 		gHUD.m_AnnouncerIcon.m_iHeadshot = false;
 		gHUD.m_CHudCFMarks.m_lastKill    = false;
+		if (gHUD.m_CHudCFMarks.m_bC4Planted )
+		{
+			gHUD.m_CHudCFMarks.m_bC4Planted = false;
+		}
 
 
 	}
