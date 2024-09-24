@@ -82,7 +82,7 @@ int CHudScoreboard :: Init( void )
 {
 	gHUD.AddHudElem( this );
 
-	gEngfuncs.pfnRegisterVariable( "hud_scoreboard", "1", FCVAR_ARCHIVE );// 1 old cso scoreboard 2 new cso scoreboard(not ready) 3 cs2 scoreboard (not ready)
+	hud_scoreboard = gEngfuncs.pfnRegisterVariable( "hud_scoreboard", "1", FCVAR_ARCHIVE );// 1 old cso scoreboard 2 new cso scoreboard(not ready) 3 cs2 scoreboard (not ready)
 	// Hook messages & commands here
 	HOOK_COMMAND( "+showscores", ShowScores );
 	HOOK_COMMAND( "-showscores", HideScores );
