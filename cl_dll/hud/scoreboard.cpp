@@ -172,7 +172,10 @@ int CHudScoreboard :: Draw( float flTime )
 {
 	//https://github.com/hasandramali/cs16advanced/blob/e2694e545a2ce5c13e5477a5e786e0bf3caf7d9f/jni/cs16adv/cl_dll/hud/scoreboard.cpp#L198
 
-	DrawTopScoreBoard( flTime );
+	if ( hud_scoreboard->value )
+	{
+		DrawTopScoreBoard( flTime );
+	}
 	if( !m_bForceDraw )
 	{
 		if ( (!m_bShowscoresHeld && gHUD.m_Health.m_iHealth > 0 && !gHUD.m_iIntermission) )
@@ -712,6 +715,17 @@ int CHudScoreboard :: MsgFunc_TeamScore( const char *pszName, int iSize, void *p
 	g_TeamInfo[i].scores_overriden = TRUE;
 	g_TeamInfo[i].frags = reader.ReadShort();
 	g_TeamInfo[i].deaths = reader.ReadShort();
+
+	
+	if ( TeamName[0] == 'T' )
+	{
+		m_iTeamScore_T = g_TeamInfo[i].frags;
+	}
+	else if ( TeamName[0] == 'C' )
+	{
+		m_iTeamScore_CT = g_TeamInfo[i].frags;
+	}
+	
 	
 	return 1;
 }
