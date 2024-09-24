@@ -369,8 +369,36 @@ public:
 	void BuildHudNumberRect( int moe, wrect_t *prc, int w, int h, int xOffset, int yOffset );
 	int DrawHudNumber( int moe, wrect_t *prc, int x, int y, int iFlags, int iNumber, int r, int g, int b );
 	int GetHudNumberWidth( int moe, wrect_t *prc, int iFlags, int iNumber );
+	void DrawNumber( int number, float x, float y, int r, int g, int b, int a, int textureID, int w, int h );
 	cvar_t *hud_scoreboard;
 
+	enum CSO_New_Scoreboard
+	{
+		SB_NUM_BLUE = 0,// FOR CT
+		SB_NUM_RED,// FOR TR,
+		SB_NUM_BIG_WHITE,//
+		SB_NUM_WHITE,//FOR ROUNDTIME
+		SB_NUM_SMALL_BLUE,// FOR ALIVE CT
+		HUD_SCOREBOARD_BACKGROUND,
+		SB_NUM_SMALL_RED, // FOR ALIVE TR
+		SB_NUM_CENTER,//ROUND COUNT
+		SB_NUM_YELLOW,
+
+	};
+	std::vector< int > csoTexture;
+	std::vector< std::string > texturePaths =
+	{
+	    "resource/hud_cso/hud_sb_num_big_blue.tga",
+	    "resource/hud_cso/hud_sb_num_big_red.tga",
+	    "resource/hud_cso/hud_sb_num_big_white.tga",
+	    "resource/hud_cso/hud_sb_num_bottom.tga",
+	    "resource/hud_cso/hud_sb_num_small_blue.tga",
+		"resource/hud_cso/hud_scoreboard_bg.tga",
+	    "resource/hud_cso/hud_sb_num_small_red.tga",
+	    "resource/hud_cso/hud_sb_num_center.tga",
+	    "resource/hud_cso/hud_cd_num_big_yellow.tga"
+
+	};
 
 private:
 	int m_iLastKilledBy;
@@ -2820,6 +2848,8 @@ class CHudSpeedometer : public CHudBase
 	virtual int Init( );
 	virtual int VidInit( );
 	void DrawNumber( int number, float x, float y, int r, int g, int b, int a, int textureID,int w, int h );
+	void DrawNumber2( int number, float x, float y, int r, int g, int b, int a, int textureID, int desiredWidth, int desiredHeight );
+
 	virtual int Draw( float flTime );
 	void UpdateSpeed( const float velocity[2] );
 	int current_texture_type;

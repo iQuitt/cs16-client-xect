@@ -82,7 +82,7 @@ int CHudScoreboard :: Init( void )
 {
 	gHUD.AddHudElem( this );
 
-	hud_scoreboard = gEngfuncs.pfnRegisterVariable( "hud_scoreboard", "1", FCVAR_ARCHIVE );// 1 old cso scoreboard 2 new cso scoreboard(not ready) 3 cs2 scoreboard (not ready)
+	hud_scoreboard = gEngfuncs.pfnRegisterVariable( "hud_scoreboard", "1", FCVAR_ARCHIVE );// 1 old cso scoreboard 2 new cso scoreboard 3 cs2 scoreboard (not ready)
 	// Hook messages & commands here
 	HOOK_COMMAND( "+showscores", ShowScores );
 	HOOK_COMMAND( "-showscores", HideScores );
@@ -134,6 +134,24 @@ int CHudScoreboard :: VidInit( void )
 
 	BuildHudNumberRect( m_iNum_L, m_rcNumber_Large, 13, 13, 1, 1 );
 	BuildHudNumberRect( m_iNum_S, m_rcNumber_Small, 10, 10, 1, 1 );
+
+	auto loadTextures = []( std::vector< int > &textureVector, const std::vector< std::string > &pathVector, int maxTextures )
+	{
+		textureVector.resize( maxTextures, 0 );
+		for ( int i = 0; i < maxTextures && i < static_cast< int >( pathVector.size( ) ); ++i )
+		{
+			if ( !pathVector[i].empty( ) )
+			{
+				textureVector[i] = gRenderAPI.GL_LoadTexture( pathVector[i].c_str( ), NULL, 0, TF_NEAREST | TF_NOPICMIP | TF_NOMIPMAP | TF_CLAMP );
+				if ( textureVector[i] == 0 )
+				{
+					gEngfuncs.Con_Printf( "^9ERROR: ^7Failed to load texture: %s\n", pathVector[i].c_str( ) );
+				}
+			}
+		}
+	};
+	// Load CSO TopScoreboard New
+	loadTextures( gHUD.m_Scoreboard.csoTexture, gHUD.m_Scoreboard.texturePaths, CHudScoreboard::CSO_New_Scoreboard::SB_NUM_YELLOW );
 
 	xstart = ScreenWidth * 0.125f;
 	xend = ScreenWidth - xstart;
@@ -777,7 +795,6 @@ void CHudScoreboard :: UserCmd_HideScores( void )
 	m_bForceDraw = m_bShowscoresHeld = false;
 }
 
-
 void CHudScoreboard	:: UserCmd_ShowScoreboard2()
 {
 	if( gEngfuncs.Cmd_Argc() != 9 )
@@ -802,7 +819,38 @@ void CHudScoreboard :: UserCmd_HideScoreboard2()
 	m_bForceDraw = m_bShowscoresHeld = false; // and disable it
 }
 
+void CHudScoreboard::DrawNumber( int number, float x, float y, int r, int g, int b, int a, int textureID, int desiredWidth, int desiredHeight )
+{
+	int textureWidth  = 512;
+	int textureHeight = 64;
+	int digitWidth    = textureWidth / 10;
+	int digitHeight   = textureHeight;
+	char numberStr[20];
+	snprintf( numberStr, sizeof( numberStr ), "%02d", number ); // Changed to %02d for leading zero
+	int len = strlen( numberStr );
 
+	// Calculate scaling factor while preserving aspect ratio
+	float scale = min( (float)desiredWidth / ( digitWidth * 2 ), (float)desiredHeight / digitHeight );
+
+	int scaledDigitWidth  = (int)( digitWidth * scale );
+	int scaledDigitHeight = (int)( digitHeight * scale );
+	int scaledSpacing     = (int)( scaledDigitWidth * 0.12f ); // 12% of scaled width for spacing
+
+	int totalWidth = len * ( scaledDigitWidth + scaledSpacing ) - scaledSpacing;
+	float startX   = x - totalWidth / 2.0f;
+	float startY   = y - scaledDigitHeight / 2.0f;
+
+	for ( int i = 0; i < len; ++i )
+	{
+		int digit      = numberStr[i] - '0';
+		int digitIndex = digit;
+		float digitX   = startX + i * ( scaledDigitWidth + scaledSpacing );
+		float digitY   = startY;
+
+		DrawUtils::Draw2DQuad2(
+		    digitX, digitY, scaledDigitWidth, scaledDigitHeight, (float)digitIndex / 10.0f, 0.0f, (float)( digitIndex + 1 ) / 10.0f, 1.0f, textureID, r, g, b, a );
+	}
+}
 
 int CHudScoreboard::DrawTopScoreBoard( float flTime )
 {
@@ -879,80 +927,94 @@ int CHudScoreboard::DrawTopScoreBoard( float flTime )
 		roundNumber = m_iTeamScore_Max ? m_iTeamScore_Max : 0;
 	}
 
-	if ( roundNumber >= 1000 )
+	if ( hud_scoreboard->value == 1 )
 	{
-		int textWidth = GetHudNumberWidth( m_iNum_S, m_rcNumber_Small, DHN_4DIGITS | DHN_3DIGITS | DHN_2DIGITS | DHN_DRAWZERO, roundNumber );
+		if ( roundNumber >= 1000 )
+		{
+			int textWidth = GetHudNumberWidth( m_iNum_S, m_rcNumber_Small, DHN_4DIGITS | DHN_3DIGITS | DHN_2DIGITS | DHN_DRAWZERO, roundNumber );
 
-		if ( textWidth > 0 )
-			DrawHudNumber( m_iNum_S, m_rcNumber_Small, ( ScreenWidth - textWidth ) / 2, bgY + 10, DHN_4DIGITS | DHN_3DIGITS | DHN_2DIGITS | DHN_DRAWZERO, roundNumber, 128, 128, 128 );
-	}
-	else if ( roundNumber >= 1000 )
-	{
-		int textWidth = GetHudNumberWidth( m_iNum_L, m_rcNumber_Large, DHN_3DIGITS | DHN_2DIGITS | DHN_DRAWZERO, roundNumber );
+			if ( textWidth > 0 )
+				DrawHudNumber( m_iNum_S, m_rcNumber_Small, ( ScreenWidth - textWidth ) / 2, bgY + 10, DHN_4DIGITS | DHN_3DIGITS | DHN_2DIGITS | DHN_DRAWZERO, roundNumber, 128, 128, 128 );
+		}
+		else if ( roundNumber >= 1000 )
+		{
+			int textWidth = GetHudNumberWidth( m_iNum_L, m_rcNumber_Large, DHN_3DIGITS | DHN_2DIGITS | DHN_DRAWZERO, roundNumber );
 
-		if ( textWidth > 0 )
-			DrawHudNumber( m_iNum_L, m_rcNumber_Large, ( ScreenWidth - textWidth ) / 2, bgY + 10, DHN_3DIGITS | DHN_2DIGITS | DHN_DRAWZERO, roundNumber, 128, 128, 128 );
+			if ( textWidth > 0 )
+				DrawHudNumber( m_iNum_L, m_rcNumber_Large, ( ScreenWidth - textWidth ) / 2, bgY + 10, DHN_3DIGITS | DHN_2DIGITS | DHN_DRAWZERO, roundNumber, 128, 128, 128 );
+		}
+		else
+		{
+			int textWidth = GetHudNumberWidth( m_iNum_L, m_rcNumber_Large, DHN_2DIGITS | DHN_DRAWZERO, roundNumber );
+
+			if ( textWidth > 0 )
+				DrawHudNumber( m_iNum_L, m_rcNumber_Large, ( ScreenWidth - textWidth ) / 2, bgY + 10, DHN_2DIGITS | DHN_DRAWZERO, roundNumber, 128, 128, 128 );
+		}
+
+		if ( m_iTeamScore_T >= 1000 )
+		{
+			int textWidth_T = GetHudNumberWidth( m_iNum_S, m_rcNumber_Small, DHN_4DIGITS | DHN_3DIGITS | DHN_2DIGITS | DHN_DRAWZERO, m_iTeamScore_T );
+
+			if ( textWidth_T > 0 )
+				DrawHudNumber( m_iNum_S, m_rcNumber_Small, ( ScreenWidth ) / 2 - 90, bgY + 11, DHN_4DIGITS | DHN_3DIGITS | DHN_2DIGITS | DHN_DRAWZERO, m_iTeamScore_T, 128, 128, 128 );
+		}
+		else if ( m_iTeamScore_T >= 100 )
+		{
+			int textWidth_T = GetHudNumberWidth( m_iNum_L, m_rcNumber_Large, DHN_3DIGITS | DHN_DRAWZERO, m_iTeamScore_T );
+
+			if ( textWidth_T > 0 )
+				DrawHudNumber( m_iNum_L, m_rcNumber_Large, ( ScreenWidth ) / 2 - 89, bgY + 10, DHN_3DIGITS | DHN_DRAWZERO, m_iTeamScore_T, 128, 128, 128 );
+		}
+		else
+		{
+			int textWidth_T = GetHudNumberWidth( m_iNum_L, m_rcNumber_Large, DHN_2DIGITS | DHN_DRAWZERO, m_iTeamScore_T );
+
+			if ( textWidth_T > 0 )
+				DrawHudNumber( m_iNum_L, m_rcNumber_Large, ( ScreenWidth ) / 2 - 89, bgY + 10, DHN_2DIGITS | DHN_DRAWZERO, m_iTeamScore_T, 128, 128, 128 );
+		}
+
+		if ( m_iTeamScore_CT >= 1000 )
+		{
+			int textWidth_CT = GetHudNumberWidth( m_iNum_S, m_rcNumber_Small, DHN_4DIGITS | DHN_3DIGITS | DHN_2DIGITS | DHN_DRAWZERO, m_iTeamScore_CT );
+
+			if ( textWidth_CT > 0 )
+				DrawHudNumber( m_iNum_S, m_rcNumber_Small, ( ( ScreenWidth ) / 2 ) + 71 - ( textWidth_CT / 2 ), bgY + 11, DHN_4DIGITS | DHN_3DIGITS | DHN_2DIGITS | DHN_DRAWZERO, m_iTeamScore_CT, 128, 128, 128 );
+		}
+		else if ( m_iTeamScore_CT >= 100 )
+		{
+			int textWidth_CT = GetHudNumberWidth( m_iNum_L, m_rcNumber_Large, DHN_3DIGITS | DHN_2DIGITS | DHN_DRAWZERO, m_iTeamScore_CT );
+
+			if ( textWidth_CT > 0 )
+				DrawHudNumber( m_iNum_L, m_rcNumber_Large, ( ( ScreenWidth ) / 2 ) + 70 - ( textWidth_CT / 2 ), bgY + 10, DHN_3DIGITS | DHN_DRAWZERO, m_iTeamScore_CT, 128, 128, 128 );
+		}
+		else
+		{
+			int textWidth_CT = GetHudNumberWidth( m_iNum_L, m_rcNumber_Large, DHN_2DIGITS | DHN_DRAWZERO, m_iTeamScore_CT );
+
+			if ( textWidth_CT > 0 )
+				DrawHudNumber( m_iNum_L, m_rcNumber_Large, ( ( ScreenWidth ) / 2 ) + 73 - ( textWidth_CT / 2 ), bgY + 10, DHN_2DIGITS | DHN_DRAWZERO, m_iTeamScore_CT, 128, 128, 128 );
+		}
+
+		if ( m_bIsTeamplay )
+		{
+			if ( textWidth_TAlive > 0 )
+				DrawHudNumber( m_iNum_S, m_rcNumber_Small, ( ScreenWidth ) / 2 - 69, bgY + 30, DHN_2DIGITS | DHN_DRAWZERO, m_iTeamAlive_T, 128, 128, 128 );
+
+			if ( textWidth_CTAlive > 0 )
+				DrawHudNumber( m_iNum_S, m_rcNumber_Small, ( ScreenWidth ) / 2 + 47, bgY + 30, DHN_2DIGITS | DHN_DRAWZERO, m_iTeamAlive_CT, 128, 128, 128 );
+		}
 	}
 	else
 	{
-		int textWidth = GetHudNumberWidth( m_iNum_L, m_rcNumber_Large, DHN_2DIGITS | DHN_DRAWZERO, roundNumber );
-
-		if ( textWidth > 0 )
-			DrawHudNumber( m_iNum_L, m_rcNumber_Large, ( ScreenWidth - textWidth ) / 2, bgY + 10, DHN_2DIGITS | DHN_DRAWZERO, roundNumber, 128, 128, 128 );
+		DrawUtils::Draw2DQuad2( ScreenWidth / 2 - 133, ScreenHeight / 2 - 500, 280, 83,0.0f, 0.0f, 1.0f, 1.0f, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::HUD_SCOREBOARD_BACKGROUND],255,255,255,255 );
+		DrawNumber( m_iTeamAlive_T, ScreenWidth / 2 - 58, ScreenHeight / 2 - 434, 255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_SMALL_RED], 80, 11 );
+		DrawNumber( m_iTeamAlive_CT, ScreenWidth / 2 + 70, ScreenHeight / 2 - 434, 255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_SMALL_BLUE], 80, 11 );
+		DrawNumber( m_iTeamScore_CT, ScreenWidth / 2 + 77, ScreenHeight / 2 - 465, 255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_BLUE], 180, 22 );
+		DrawNumber( m_iTeamScore_T, ScreenWidth / 2 - 65, ScreenHeight / 2 - 465, 255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_RED], 180, 22 );
+		DrawNumber( roundNumber, ScreenWidth / 2 + 10, ScreenHeight / 2 - 465, 255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_CENTER], 132, 15 );
+		// TODO: Add Timer
 	}
 
-	if ( m_iTeamScore_T >= 1000 )
-	{
-		int textWidth_T = GetHudNumberWidth( m_iNum_S, m_rcNumber_Small, DHN_4DIGITS | DHN_3DIGITS | DHN_2DIGITS | DHN_DRAWZERO, m_iTeamScore_T );
-
-		if ( textWidth_T > 0 )
-			DrawHudNumber( m_iNum_S, m_rcNumber_Small, ( ScreenWidth ) / 2 - 90, bgY + 11, DHN_4DIGITS | DHN_3DIGITS | DHN_2DIGITS | DHN_DRAWZERO, m_iTeamScore_T, 128, 128, 128 );
-	}
-	else if ( m_iTeamScore_T >= 100 )
-	{
-		int textWidth_T = GetHudNumberWidth( m_iNum_L, m_rcNumber_Large, DHN_3DIGITS | DHN_DRAWZERO, m_iTeamScore_T );
-
-		if ( textWidth_T > 0 )
-			DrawHudNumber( m_iNum_L, m_rcNumber_Large, ( ScreenWidth ) / 2 - 89, bgY + 10, DHN_3DIGITS | DHN_DRAWZERO, m_iTeamScore_T, 128, 128, 128 );
-	}
-	else
-	{
-		int textWidth_T = GetHudNumberWidth( m_iNum_L, m_rcNumber_Large, DHN_2DIGITS | DHN_DRAWZERO, m_iTeamScore_T );
-
-		if ( textWidth_T > 0 )
-			DrawHudNumber( m_iNum_L, m_rcNumber_Large, ( ScreenWidth ) / 2 - 89, bgY + 10, DHN_2DIGITS | DHN_DRAWZERO, m_iTeamScore_T, 128, 128, 128 );
-	}
-
-	if ( m_iTeamScore_CT >= 1000 )
-	{
-		int textWidth_CT = GetHudNumberWidth( m_iNum_S, m_rcNumber_Small, DHN_4DIGITS | DHN_3DIGITS | DHN_2DIGITS | DHN_DRAWZERO, m_iTeamScore_CT );
-
-		if ( textWidth_CT > 0 )
-			DrawHudNumber( m_iNum_S, m_rcNumber_Small, ( ( ScreenWidth ) / 2 ) + 71 - ( textWidth_CT / 2 ), bgY + 11, DHN_4DIGITS | DHN_3DIGITS | DHN_2DIGITS | DHN_DRAWZERO, m_iTeamScore_CT, 128, 128, 128 );
-	}
-	else if ( m_iTeamScore_CT >= 100 )
-	{
-		int textWidth_CT = GetHudNumberWidth( m_iNum_L, m_rcNumber_Large, DHN_3DIGITS | DHN_2DIGITS | DHN_DRAWZERO, m_iTeamScore_CT );
-
-		if ( textWidth_CT > 0 )
-			DrawHudNumber( m_iNum_L, m_rcNumber_Large, ( ( ScreenWidth ) / 2 ) + 70 - ( textWidth_CT / 2 ), bgY + 10, DHN_3DIGITS | DHN_DRAWZERO, m_iTeamScore_CT, 128, 128, 128 );
-	}
-	else
-	{
-		int textWidth_CT = GetHudNumberWidth( m_iNum_L, m_rcNumber_Large, DHN_2DIGITS | DHN_DRAWZERO, m_iTeamScore_CT );
-
-		if ( textWidth_CT > 0 )
-			DrawHudNumber( m_iNum_L, m_rcNumber_Large, ( ( ScreenWidth ) / 2 ) + 73 - ( textWidth_CT / 2 ), bgY + 10, DHN_2DIGITS | DHN_DRAWZERO, m_iTeamScore_CT, 128, 128, 128 );
-	}
-
-	if ( m_bIsTeamplay )
-	{
-		if ( textWidth_TAlive > 0 )
-			DrawHudNumber( m_iNum_S, m_rcNumber_Small, ( ScreenWidth ) / 2 - 69, bgY + 30, DHN_2DIGITS | DHN_DRAWZERO, m_iTeamAlive_T, 128, 128, 128 );
-
-		if ( textWidth_CTAlive > 0 )
-			DrawHudNumber( m_iNum_S, m_rcNumber_Small, ( ScreenWidth ) / 2 + 47, bgY + 30, DHN_2DIGITS | DHN_DRAWZERO, m_iTeamAlive_CT, 128, 128, 128 );
-	}
 
 	return 1;
 }

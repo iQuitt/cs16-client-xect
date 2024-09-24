@@ -35,6 +35,40 @@ int CHudSpeedometer::VidInit( )
 
 	return 1;
 }
+
+
+void CHudSpeedometer::DrawNumber2( int number, float x, float y, int r, int g, int b, int a, int textureID, int desiredWidth, int desiredHeight )
+{
+	int textureWidth  = 512;
+	int textureHeight = 64;
+	int digitWidth    = textureWidth / 10;
+	int digitHeight   = textureHeight;
+	char numberStr[20];
+	snprintf( numberStr, sizeof( numberStr ), "%d", number );
+	int len = strlen( numberStr );
+
+	// Calculate scaling factor while preserving aspect ratio
+	float scale = min( (float)desiredWidth / digitWidth, (float)desiredHeight / digitHeight );
+
+	int scaledDigitWidth  = (int)( digitWidth * scale );
+	int scaledDigitHeight = (int)( digitHeight * scale );
+	int scaledSpacing     = (int)( scaledDigitWidth * 0.1f ); // 10% of scaled width for spacing
+
+	int totalWidth = len * ( scaledDigitWidth + scaledSpacing ) - scaledSpacing;
+	float startX   = x - totalWidth / 2.0f;
+	float startY   = y - scaledDigitHeight / 2.0f;
+
+	for ( int i = 0; i < len; ++i )
+	{
+		int digit      = numberStr[i] - '0';
+		int digitIndex = digit;
+		float digitX   = startX + i * ( scaledDigitWidth + scaledSpacing );
+		float digitY   = startY;
+
+		DrawUtils::Draw2DQuad2(
+		    digitX, digitY, scaledDigitWidth, scaledDigitHeight, (float)digitIndex / 10.0f, 0.0f, (float)( digitIndex + 1 ) / 10.0f, 1.0f, textureID, r, g, b, a );
+	}
+}
 void CHudSpeedometer::DrawNumber( int number, float x, float y, int r, int g, int b, int a,int textureID, int w, int h)
 {
 	int textureWidth  = 512;
