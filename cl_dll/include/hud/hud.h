@@ -377,7 +377,7 @@ public:
 		SB_NUM_BLUE = 0,// FOR CT
 		SB_NUM_RED,// FOR TR,
 		SB_NUM_BIG_WHITE,//
-		SB_NUM_WHITE,//FOR ROUNDTIME
+		SB_NUM_WHITE_BOTTOM,//FOR ROUNDTIME
 		SB_NUM_SMALL_BLUE,// FOR ALIVE CT
 		HUD_SCOREBOARD_BACKGROUND,
 		SB_NUM_SMALL_RED, // FOR ALIVE TR
@@ -2877,12 +2877,13 @@ public:
 	// show the timer
 	// [empty]
 	CHudMsgFunc(ShowTimer);
-private:
 	int m_HUD_timer;
 	int m_iTime;
 	float m_fStartTime;
 	bool m_bPanicColorChange;
 	float m_flPanicTime;
+
+
 };
 //
 //-----------------------------------------------------

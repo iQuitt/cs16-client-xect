@@ -821,8 +821,8 @@ void CHudScoreboard :: UserCmd_HideScoreboard2()
 
 void CHudScoreboard::DrawNumber( int number, float x, float y, int r, int g, int b, int a, int textureID, int desiredWidth, int desiredHeight )
 {
-	int textureWidth  = 512;
-	int textureHeight = 64;
+	int textureWidth  = 180;
+	int textureHeight = 22;
 	int digitWidth    = textureWidth / 10;
 	int digitHeight   = textureHeight;
 	char numberStr[20];
@@ -830,7 +830,7 @@ void CHudScoreboard::DrawNumber( int number, float x, float y, int r, int g, int
 	int len = strlen( numberStr );
 
 	// Calculate scaling factor while preserving aspect ratio
-	float scale = min( (float)desiredWidth / ( digitWidth * 2 ), (float)desiredHeight / digitHeight );
+	float scale = min( (float)desiredWidth / ( digitWidth * 10 ), (float)desiredHeight / digitHeight );
 
 	int scaledDigitWidth  = (int)( digitWidth * scale );
 	int scaledDigitHeight = (int)( digitHeight * scale );
@@ -851,6 +851,8 @@ void CHudScoreboard::DrawNumber( int number, float x, float y, int r, int g, int
 		    digitX, digitY, scaledDigitWidth, scaledDigitHeight, (float)digitIndex / 10.0f, 0.0f, (float)( digitIndex + 1 ) / 10.0f, 1.0f, textureID, r, g, b, a );
 	}
 }
+
+
 
 int CHudScoreboard::DrawTopScoreBoard( float flTime )
 {
@@ -1011,8 +1013,36 @@ int CHudScoreboard::DrawTopScoreBoard( float flTime )
 		DrawNumber( m_iTeamAlive_CT, ScreenWidth / 2 + 70, ScreenHeight / 2 - 434, 255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_SMALL_BLUE], 80, 11 );
 		DrawNumber( m_iTeamScore_CT, ScreenWidth / 2 + 77, ScreenHeight / 2 - 465, 255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_BLUE], 180, 22 );
 		DrawNumber( m_iTeamScore_T, ScreenWidth / 2 - 65, ScreenHeight / 2 - 465, 255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_RED], 180, 22 );
-		DrawNumber( roundNumber, ScreenWidth / 2 + 10, ScreenHeight / 2 - 465, 255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_CENTER], 132, 15 );
-		// TODO: Add Timer
+		DrawNumber( roundNumber, ScreenWidth / 2 + 10, ScreenHeight / 2 - 465, 255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_CENTER], 180, 22 );
+
+		int minutes = max( 0, (int)( gHUD.m_Timer.m_iTime + gHUD.m_Timer.m_fStartTime - gHUD.m_flTime ) / 60 );
+		int seconds = max( 0, (int)( gHUD.m_Timer.m_iTime + gHUD.m_Timer.m_fStartTime - gHUD.m_flTime ) - ( minutes * 60 ) );
+		int r = 255, g = 255, b = 255;
+		if ( minutes * 60 + seconds > 20 )
+		{
+			r = 255;
+			g = 255;
+			b = 255;
+		}
+		else
+		{
+			gHUD.m_Timer.m_flPanicTime += gHUD.m_flTimeDelta;
+			// add 0.1 sec, so it's not flicker fast
+			if ( gHUD.m_Timer.m_flPanicTime > ( (float)seconds / 40.0f ) + 0.1f )
+			{
+				gHUD.m_Timer.m_flPanicTime = 0;
+				gHUD.m_Timer.m_bPanicColorChange = !gHUD.m_Timer.m_bPanicColorChange;
+			}
+			if ( gHUD.m_Timer.m_bPanicColorChange )
+			{
+				r = 255;
+				g = 0;
+				b = 0;
+			}
+		}
+
+		DrawNumber( minutes, ScreenWidth / 2 - 5, ScreenHeight / 2 + gHUD.cl_gunsmoke->value, r, g, b, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_WHITE_BOTTOM], 80, 12 );
+		DrawNumber( seconds, ScreenWidth / 2 + gHUD.cl_min_ct->value, ScreenHeight / 2 - gHUD.cl_min_t->value, r, g, b, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_WHITE_BOTTOM], 80, 12 );
 	}
 
 
