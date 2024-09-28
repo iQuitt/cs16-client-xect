@@ -22,9 +22,9 @@ int CHudSpeedometer::Init( )
 	hud_speedometer_red            = gEngfuncs.pfnRegisterVariable( "hud_speedometer_red", "255", FCVAR_ARCHIVE );
 	hud_speedometer_green          = gEngfuncs.pfnRegisterVariable( "hud_speedometer_green", "255", FCVAR_ARCHIVE );
 	hud_speedometer_blue           = gEngfuncs.pfnRegisterVariable( "hud_speedometer_blue", "255", FCVAR_ARCHIVE );
-	hud_speedometer_texture_height = gEngfuncs.pfnRegisterVariable( "hud_speedometer_texture_height", "-10", FCVAR_ARCHIVE );
-	hud_speedometer_texture_width  = gEngfuncs.pfnRegisterVariable( "hud_speedometer_texture_width", "-10", FCVAR_ARCHIVE );
-	hud_speedometer_texture_type   = gEngfuncs.pfnRegisterVariable( "hud_speedometer_texture_type", "2", FCVAR_ARCHIVE );
+	hud_speedometer_texture_height = gEngfuncs.pfnRegisterVariable( "hud_speedometer_texture_height", "25", FCVAR_ARCHIVE );
+	hud_speedometer_texture_width  = gEngfuncs.pfnRegisterVariable( "hud_speedometer_texture_width", "25", FCVAR_ARCHIVE );
+	hud_speedometer_texture_type   = gEngfuncs.pfnRegisterVariable( "hud_speedometer_texture_type", "2", FCVAR_ARCHIVE );// 1 DrawString // 2 nexon's floatdamage //3 HUD Number
 
 	return 1;
 }
@@ -69,31 +69,40 @@ void CHudSpeedometer::DrawNumber2( int number, float x, float y, int r, int g, i
 		    digitX, digitY, scaledDigitWidth, scaledDigitHeight, (float)digitIndex / 10.0f, 0.0f, (float)( digitIndex + 1 ) / 10.0f, 1.0f, textureID, r, g, b, a );
 	}
 }
-void CHudSpeedometer::DrawNumber( int number, float x, float y, int r, int g, int b, int a,int textureID, int w, int h)
+void CHudSpeedometer::DrawNumber( int number, float x, float y, int r, int g, int b, int a, int textureID, int w, int h)
 {
 	int textureWidth  = 512;
 	int textureHeight = 64;
 	int digitWidth    = textureWidth / 10;
 	int digitHeight   = textureHeight;
+
 	char numberStr[20];
 	snprintf( numberStr, sizeof( numberStr ), "%d", number );
 	int len = strlen( numberStr );
-	float widthScale  = 1.0f;
-	float heightScale = 1.0f;
-	int scaledSpacing = (int)( w * widthScale );
-	int totalWidth    = len * ( digitWidth + scaledSpacing ) - scaledSpacing;
 
-	float startX = x - totalWidth / 2.0f;
-	float startY = y - ( digitHeight + h ) / 2.0f;
+	float baseScale   = (float)ScreenHeight / 1080.0f; 
+	float widthScale  = baseScale * 0.5f;      
+	float heightScale = baseScale * 0.5f;          
 
+	int scaledDigitWidth  = (int)( digitWidth * widthScale );
+	int scaledDigitHeight = (int)( digitHeight * heightScale );
+	int scaledSpacing     = (int)( w * widthScale );
+	int scaledW           = (int)( w * widthScale );
+	int scaledH           = (int)( h * heightScale );
+
+	int totalWidth = len * ( scaledDigitWidth + scaledSpacing ) - scaledSpacing;
+
+	float startX = ( x * ScreenWidth ) - totalWidth / 2.0f;
+	float startY = ( y * ScreenHeight ) - ( scaledDigitHeight + scaledH ) / 2.0f;
 
 	for ( int i = 0; i < len; ++i )
 	{
 		int digit      = numberStr[i] - '0';
 		int digitIndex = digit;
-		float digitX   = startX + i * ( digitWidth + scaledSpacing );
+		float digitX   = startX + i * ( scaledDigitWidth + scaledSpacing );
 		float digitY   = startY;
-		DrawUtils::Draw2DQuad2( digitX, digitY, digitWidth + w, digitHeight + h, (float)digitIndex / 10.0f, 0.0f, (float)( digitIndex + 1 ) / 10.0f, 1.0f, textureID, r, g, b, a );
+
+		DrawUtils::Draw2DQuad2(digitX, digitY, scaledDigitWidth + scaledW, scaledDigitHeight + scaledH, (float)digitIndex / 10.0f, 0.0f, (float)( digitIndex + 1 ) / 10.0f, 1.0f, textureID, r, g, b, a );
 	}
 }
 int CHudSpeedometer::Draw( float time )
@@ -117,7 +126,7 @@ int CHudSpeedometer::Draw( float time )
 	}
 	else if ( hud_speedometer->value == 2 )
 	{
-		DrawNumber(m_iSpeed,ScreenWidth / 2 + hud_speedometer_x->value,ScreenHeight / 2 + hud_speedometer_y->value, hud_speedometer_red->value,hud_speedometer_green->value,hud_speedometer_blue->value,255, textureID, hud_speedometer_texture_width->value,hud_speedometer_texture_height->value);
+		DrawNumber(m_iSpeed,hud_speedometer_x->value, hud_speedometer_y->value, hud_speedometer_red->value,hud_speedometer_green->value,hud_speedometer_blue->value,255, textureID, hud_speedometer_texture_width->value,hud_speedometer_texture_height->value);
 	}
 	else
 	{

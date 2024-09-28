@@ -819,26 +819,25 @@ void CHudScoreboard :: UserCmd_HideScoreboard2()
 	m_bForceDraw = m_bShowscoresHeld = false; // and disable it
 }
 
-void CHudScoreboard::DrawNumber( int number, float x, float y, int r, int g, int b, int a, int textureID, int desiredWidth, int desiredHeight )
+void CHudScoreboard::DrawNumber( int number, float x, float y, int r, int g, int b, int a, int textureID, int w, int h )
 {
 	int textureWidth  = 180;
 	int textureHeight = 22;
 	int digitWidth    = textureWidth / 10;
 	int digitHeight   = textureHeight;
 	char numberStr[20];
-	snprintf( numberStr, sizeof( numberStr ), "%02d", number ); // Changed to %02d for leading zero
+	snprintf( numberStr, sizeof( numberStr ), "%02d", number );
 	int len = strlen( numberStr );
 
-	// Calculate scaling factor while preserving aspect ratio
-	float scale = min( (float)desiredWidth / ( digitWidth * 10 ), (float)desiredHeight / digitHeight );
-
+	float scale           = min( (float)w / ( digitWidth * len ), (float)h / digitHeight );
 	int scaledDigitWidth  = (int)( digitWidth * scale );
 	int scaledDigitHeight = (int)( digitHeight * scale );
-	int scaledSpacing     = (int)( scaledDigitWidth * 0.12f ); // 12% of scaled width for spacing
+	int scaledSpacing     = (int)( scaledDigitWidth * 0.10f );
 
 	int totalWidth = len * ( scaledDigitWidth + scaledSpacing ) - scaledSpacing;
-	float startX   = x - totalWidth / 2.0f;
-	float startY   = y - scaledDigitHeight / 2.0f;
+
+	float startX = ( x * ScreenWidth ) - totalWidth / 2.0f;
+	float startY = ( y * ScreenHeight ) - scaledDigitHeight / 2.0f;
 
 	for ( int i = 0; i < len; ++i )
 	{
@@ -1008,12 +1007,15 @@ int CHudScoreboard::DrawTopScoreBoard( float flTime )
 	}
 	else
 	{
-		DrawUtils::Draw2DQuad2( ScreenWidth / 2 - 133, ScreenHeight / 2 - 500, 280, 83,0.0f, 0.0f, 1.0f, 1.0f, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::HUD_SCOREBOARD_BACKGROUND],255,255,255,255 );
-		DrawNumber( m_iTeamAlive_T, ScreenWidth / 2 - 58, ScreenHeight / 2 - 434, 255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_SMALL_RED], 80, 11 );
-		DrawNumber( m_iTeamAlive_CT, ScreenWidth / 2 + 70, ScreenHeight / 2 - 434, 255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_SMALL_BLUE], 80, 11 );
-		DrawNumber( m_iTeamScore_CT, ScreenWidth / 2 + 77, ScreenHeight / 2 - 465, 255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_BLUE], 180, 22 );
-		DrawNumber( m_iTeamScore_T, ScreenWidth / 2 - 65, ScreenHeight / 2 - 465, 255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_RED], 180, 22 );
-		DrawNumber( roundNumber, ScreenWidth / 2 + 10, ScreenHeight / 2 - 465, 255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_CENTER], 180, 22 );
+		DrawUtils::Draw2DQuad2( ScreenWidth * 0.5f - 140, 0, 280, 83, 0.0f, 0.0f, 1.0f, 1.0f, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::HUD_SCOREBOARD_BACKGROUND], 255, 255, 255, 255 );
+
+		DrawNumber( m_iTeamScore_T, 0.465, 0.035, 255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_RED], 80, 22 );
+		DrawNumber( m_iTeamScore_CT, 0.535, 0.035, 255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_BLUE], 80, 22 );
+
+		DrawNumber( roundNumber, 0.5, 0.035, 255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_CENTER], 80, 22 );
+
+		DrawNumber( m_iTeamAlive_T, 0.465, 0.065, 255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_SMALL_RED], 80, 11 );
+		DrawNumber( m_iTeamAlive_CT, 0.535, 0.065, 255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_SMALL_BLUE], 80, 11 );
 
 		int minutes = max( 0, (int)( gHUD.m_Timer.m_iTime + gHUD.m_Timer.m_fStartTime - gHUD.m_flTime ) / 60 );
 		int seconds = max( 0, (int)( gHUD.m_Timer.m_iTime + gHUD.m_Timer.m_fStartTime - gHUD.m_flTime ) - ( minutes * 60 ) );
@@ -1041,8 +1043,8 @@ int CHudScoreboard::DrawTopScoreBoard( float flTime )
 			}
 		}
 
-		DrawNumber( minutes, ScreenWidth / 2 - 5, ScreenHeight / 2 + gHUD.cl_gunsmoke->value, r, g, b, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_WHITE_BOTTOM], 80, 12 );
-		DrawNumber( seconds, ScreenWidth / 2 + gHUD.cl_min_ct->value, ScreenHeight / 2 - gHUD.cl_min_t->value, r, g, b, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_WHITE_BOTTOM], 80, 12 );
+		DrawNumber( minutes, 0.49, 0.065, r, g, b, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_WHITE_BOTTOM], 80, 12 );
+		DrawNumber( seconds, 0.508, 0.065, r, g, b, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_WHITE_BOTTOM], 80, 12 );
 	}
 
 

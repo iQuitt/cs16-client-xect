@@ -2847,7 +2847,7 @@ class CHudSpeedometer : public CHudBase
   public:
 	virtual int Init( );
 	virtual int VidInit( );
-	void DrawNumber( int number, float x, float y, int r, int g, int b, int a, int textureID,int w, int h );
+	void DrawNumber( int number, float x, float y, int r, int g, int b, int a, int textureID, int w, int h );
 	void DrawNumber2( int number, float x, float y, int r, int g, int b, int a, int textureID, int desiredWidth, int desiredHeight );
 
 	virtual int Draw( float flTime );
