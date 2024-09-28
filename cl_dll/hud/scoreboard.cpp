@@ -879,41 +879,7 @@ int CHudScoreboard::DrawTopScoreBoard( float flTime )
 	int bgY          = 2;
 	int bgX          = ( ScreenWidth - bgWidth ) / 2;
 
-	if ( bgSprite )
-	{
-		SPR_Set( bgSprite, 255, 255, 255 );
-		SPR_DrawHoles( 0, bgX, bgY, &bgRect );
-	}
 
-	int textSprite = gHUD.GetSprite( m_iTextIndex );
-
-	if ( textSprite )
-	{
-		wrect_t textRect = gHUD.GetSpriteRect( m_iTextIndex );
-
-		SPR_Set( textSprite, 128, 128, 128 );
-		SPR_DrawAdditive( 0, ( ScreenWidth - ( textRect.right - textRect.left ) ) / 2, bgY + 29, &textRect );
-	}
-
-	int textSprite_T = gHUD.GetSprite( m_iTTextIndex );
-
-	if ( textSprite_T )
-	{
-		wrect_t textRect = gHUD.GetSpriteRect( m_iTTextIndex );
-
-		SPR_Set( textSprite_T, 128, 128, 128 );
-		SPR_DrawAdditive( 0, ( ScreenWidth ) / 2 - 50, bgY + 11, &textRect );
-	}
-
-	int textSprite_CT = gHUD.GetSprite( m_iCTTextIndex );
-
-	if ( textSprite_CT )
-	{
-		wrect_t textRect = gHUD.GetSpriteRect( m_iCTTextIndex );
-
-		SPR_Set( textSprite_CT, 128, 128, 128 );
-		SPR_DrawAdditive( 0, ( ScreenWidth ) / 2 + 27, bgY + 11, &textRect );
-	}
 
 	int textWidth_TAlive  = GetHudNumberWidth( m_iNum_S, m_rcNumber_Small, DHN_2DIGITS | DHN_DRAWZERO, m_iTeamAlive_T );
 	int textWidth_CTAlive = GetHudNumberWidth( m_iNum_S, m_rcNumber_Small, DHN_2DIGITS | DHN_DRAWZERO, m_iTeamAlive_CT );
@@ -930,6 +896,41 @@ int CHudScoreboard::DrawTopScoreBoard( float flTime )
 
 	if ( hud_scoreboard->value == 1 )
 	{
+		if ( bgSprite )
+		{
+			SPR_Set( bgSprite, 255, 255, 255 );
+			SPR_DrawHoles( 0, bgX, bgY, &bgRect );
+		}
+
+		int textSprite = gHUD.GetSprite( m_iTextIndex );
+
+		if ( textSprite )
+		{
+			wrect_t textRect = gHUD.GetSpriteRect( m_iTextIndex );
+
+			SPR_Set( textSprite, 128, 128, 128 );
+			SPR_DrawAdditive( 0, ( ScreenWidth - ( textRect.right - textRect.left ) ) / 2, bgY + 29, &textRect );
+		}
+
+		int textSprite_T = gHUD.GetSprite( m_iTTextIndex );
+
+		if ( textSprite_T )
+		{
+			wrect_t textRect = gHUD.GetSpriteRect( m_iTTextIndex );
+
+			SPR_Set( textSprite_T, 128, 128, 128 );
+			SPR_DrawAdditive( 0, ( ScreenWidth ) / 2 - 50, bgY + 11, &textRect );
+		}
+
+		int textSprite_CT = gHUD.GetSprite( m_iCTTextIndex );
+
+		if ( textSprite_CT )
+		{
+			wrect_t textRect = gHUD.GetSpriteRect( m_iCTTextIndex );
+
+			SPR_Set( textSprite_CT, 128, 128, 128 );
+			SPR_DrawAdditive( 0, ( ScreenWidth ) / 2 + 27, bgY + 11, &textRect );
+		}
 		if ( roundNumber >= 1000 )
 		{
 			int textWidth = GetHudNumberWidth( m_iNum_S, m_rcNumber_Small, DHN_4DIGITS | DHN_3DIGITS | DHN_2DIGITS | DHN_DRAWZERO, roundNumber );

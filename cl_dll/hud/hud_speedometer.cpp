@@ -71,8 +71,8 @@ void CHudSpeedometer::DrawNumber2( int number, float x, float y, int r, int g, i
 }
 void CHudSpeedometer::DrawNumber( int number, float x, float y, int r, int g, int b, int a, int textureID, int w, int h)
 {
-	int textureWidth  = 512;
-	int textureHeight = 64;
+	int textureWidth  = 512; // Ortalama bir floatdamagenin texture width ve heighti
+ 	int textureHeight = 64; // The texture width and height of an average floatdamage tga
 	int digitWidth    = textureWidth / 10;
 	int digitHeight   = textureHeight;
 
