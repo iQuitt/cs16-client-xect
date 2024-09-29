@@ -520,7 +520,7 @@ int CHudScoreboard :: DrawPlayers( float list_slot, int nameoffset, const char *
 		else if( g_PlayerExtraInfo[best_player].has_c4 )
 			DrawUtils::DrawHudString( ATTRIB_POS_START(), ypos, ATTRIB_POS_END(), "Bomb", r, g, b );
 		else if ( g_PlayerExtraInfo[best_player].has_defuse_kit )
-			DrawUtils::DrawHudString( ATTRIB_POS_START( ), ypos, ATTRIB_POS_END( ), "Defuse Kit", r, g, b );
+			DrawUtils::DrawHudString( ATTRIB_POS_START( ), ypos, ATTRIB_POS_END( ), "D. Kit", r, g, b );
 		else if( g_PlayerExtraInfo[best_player].vip )
 			DrawUtils::DrawHudString( ATTRIB_POS_START(), ypos, ATTRIB_POS_END(), "VIP",  r, g, b );
 

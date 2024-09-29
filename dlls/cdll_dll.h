@@ -106,6 +106,7 @@
 #define PLAYER_DEAD (1<<0)
 #define PLAYER_HAS_C4 (1<<1)
 #define PLAYER_VIP (1<<2)
+#define PLAYER_HAS_DEFUSE_KIT (1<<3)
 
 #define WEAPON_SUIT 31
 #endif
