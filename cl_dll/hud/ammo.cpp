@@ -1511,65 +1511,57 @@ int CHudAmmo::DrawCrosshairCSO( float flTime, int weaponid, int iBarSize, float 
 	return 1;
 }
 
-
 int CHudAmmo::DrawCrosshairCS2( float flTime, int weaponid, int iBarSize, float flCrosshairDistance, bool bAdditive, int r, int g, int b, int a )
 {
 	int size               = clamp( (int)m_pClCrosshairSizecs2->value, -20, 20 );
-	float thickness        = clamp( m_pClCrosshairThickness->value, -2.0f, 2.0f );
+	float thickness        = clamp( m_pClCrosshairThickness->value, 0.1f, 3.0f );
 	float outlineThickness = clamp( m_pClCrosshairOutlineThickness->value, 0.1f, 3.0f );
 	int alpha              = clamp( (int)m_pClCrosshairAlpha->value, 10, 250 );
 	float gap              = clamp( m_pClCrosshairGap->value, -10.0f, 10.0f );
 	bool tStyle            = ( m_pClCrosshairT->value != 0 );
 
-
-	// bitmedi | havent over
 	bool m_bStatic      = ( m_pClCrosshairTypecs2->value == 1 || m_pClCrosshairTypecs2->value == 4 );
 	bool m_bClassic     = ( m_pClCrosshairTypecs2->value >= 2 );
 	bool m_bDynamicDots = ( m_pClCrosshairTypecs2->value == 2 || m_pClCrosshairTypecs2->value == 3 );
 	bool m_bMixed       = ( m_pClCrosshairTypecs2->value == 5 );
 
-	float screenScale   = min( ScreenHeight, ScreenWidth ) / 1080.0f;
-	int m_iCrosshairSize      = (int)( size * screenScale );
-	int m_iThickness = max( 1, (int)( thickness * screenScale ) );
+	float screenScale    = min( ScreenHeight, ScreenWidth ) / 1080.0f;
+	int m_iCrosshairSize = max( 1, (int)( size * screenScale ) );
+	int m_iThickness     = max( 1, (int)( thickness * screenScale ) );
 
 	if ( !m_bStatic )
 	{
 		gap += flCrosshairDistance;
 	}
-	int m_iGap = (int)( gap * screenScale );
-
+	int m_iGap = max( 0, (int)( gap * screenScale ) );
 
 	void ( *pfnFillRGBA )( int x, int y, int w, int h, int r, int g, int b, int a ) = ( bAdditive == false ) ? gEngfuncs.pfnFillRGBABlend : gEngfuncs.pfnFillRGBA;
 
 	if ( m_pClCrosshairDrawOutline->value != 0 )
 	{
-		int m_iOutlineThickness = (int)outlineThickness;
+		int m_iOutlineThickness = max( 1, (int)( outlineThickness * screenScale ) );
 		for ( int i = -m_iOutlineThickness; i <= m_iOutlineThickness; i++ )
 		{
 			for ( int j = -m_iOutlineThickness; j <= m_iOutlineThickness; j++ )
 			{
 				if ( i == 0 && j == 0 )
 					continue;
-
 				if ( !tStyle )
-					pfnFillRGBA( ScreenWidth / 2 + i, ScreenHeight / 2 - m_iCrosshairSize - m_iGap + j, ScreenWidth / 2 + i, ScreenHeight / 2 - m_iGap + j, 0, 0, 0, alpha );
-
-				pfnFillRGBA( ScreenWidth / 2 - m_iCrosshairSize - m_iGap + i, ScreenHeight / 2 + j, ScreenWidth / 2 - m_iGap + i, ScreenHeight / 2 + j, 0, 0, 0, alpha );
-				pfnFillRGBA( ScreenWidth / 2 + m_iGap + i, ScreenHeight / 2 + j, ScreenWidth / 2 + m_iCrosshairSize + m_iGap + i, ScreenHeight / 2 + j, 0, 0, 0, alpha );
-
-				pfnFillRGBA( ScreenWidth / 2 + i, ScreenHeight / 2 + m_iGap + j, ScreenWidth / 2 + i, ScreenHeight / 2 + m_iCrosshairSize + m_iGap + j, 0, 0, 0, alpha );
+					pfnFillRGBA( ScreenWidth / 2 - m_iCrosshairSize - m_iGap + i, ScreenHeight / 2 + j, m_iCrosshairSize, m_iThickness, 0, 0, 0, alpha );
+				pfnFillRGBA( ScreenWidth / 2 + m_iGap + i, ScreenHeight / 2 + j, m_iCrosshairSize, m_iThickness, 0, 0, 0, alpha );
+				pfnFillRGBA( ScreenWidth / 2 + i, ScreenHeight / 2 - m_iCrosshairSize - m_iGap + j, m_iThickness, m_iCrosshairSize, 0, 0, 0, alpha );
+				pfnFillRGBA( ScreenWidth / 2 + i, ScreenHeight / 2 + m_iGap + j, m_iThickness, m_iCrosshairSize, 0, 0, 0, alpha );
 			}
 		}
 	}
 
 	a = m_pClCrosshairUseAlpha->value != 0 ? alpha : 255;
+
 	if ( !tStyle )
-		pfnFillRGBA( ScreenWidth / 2, ScreenHeight / 2 - m_iCrosshairSize - m_iGap, ScreenWidth / 2, ScreenHeight / 2 - m_iGap, r, g, b, a );
-
-	pfnFillRGBA( ScreenWidth / 2 - m_iCrosshairSize - m_iGap, ScreenHeight / 2, ScreenWidth / 2 - m_iGap, ScreenHeight / 2, r, g, b, a );
-	pfnFillRGBA( ScreenWidth / 2 + m_iGap, ScreenHeight / 2, ScreenWidth / 2 + m_iCrosshairSize + m_iGap, ScreenHeight / 2, r, g, b, a );
-
-	pfnFillRGBA( ScreenWidth / 2, ScreenHeight / 2 + m_iGap, ScreenWidth / 2, ScreenHeight / 2 + m_iCrosshairSize + m_iGap, r, g, b, a );
+		pfnFillRGBA( ScreenWidth / 2 - m_iCrosshairSize - m_iGap, ScreenHeight / 2, m_iCrosshairSize, m_iThickness, r, g, b, a );
+	pfnFillRGBA( ScreenWidth / 2 + m_iGap, ScreenHeight / 2, m_iCrosshairSize, m_iThickness, r, g, b, a );
+	pfnFillRGBA( ScreenWidth / 2, ScreenHeight / 2 - m_iCrosshairSize - m_iGap, m_iThickness, m_iCrosshairSize, r, g, b, a );
+	pfnFillRGBA( ScreenWidth / 2, ScreenHeight / 2 + m_iGap, m_iThickness, m_iCrosshairSize, r, g, b, a );
 
 	if ( m_pClCrosshairDot->value != 0 )
 	{
