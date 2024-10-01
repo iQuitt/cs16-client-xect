@@ -10,6 +10,7 @@ New cs16 client based on old FWGS repository (v1.33).
 - [x] Win Image (CT & T WIN)
 - [x] Speedometer (Console string, HUD and Nexon's Floatingdamage)
 - [x] CSO Scoreboard (Old & New) 
+- [x] CS2 and CSO Crosshair
 - [ ] HTML on MOTD
 - [ ] VGUI2 (requires Physic3D engine)
 - [ ] Gradle Android build
@@ -35,6 +36,7 @@ hud_crossfire_killmark_type ( 1 default, 2 15th anniversary, 3 Angelic Beast, 4 
 	//21 IronBeast2, 22 IronBeast2NG, 23 Kar98k Satelite, 24 M82A1 Angelic Beast, 25 M82A1 Demonic Beast, 26 New Year 27  Nightmare, 28 Rankmach19, 29 Rankmach19 two, 30 Rankmach25
 	// 31 Rankmach25 two, 32 Rankmach26, 33 Rankmach26 Two, 34 Rankmach26 Three, 35 Reactive Armor Set, 36 Red Nano, 37 Summer, 38 Summer 2, 39 TianShen, 40 ValorBeast )
 
+// Speedometer commands
 hud_speedometer
 hud_speedometer_x
 hud_speedometer_y
@@ -44,5 +46,21 @@ hud_speedometer_blue
 hud_speedometer_texture_width
 hud_speedometer_texture_height
 hud_speedometer_texture_type
+
+//Crosshair Commands
+cl_crosshair // 1 CSO (Counter Strike Online) 2 CS2 (Counter Strike 2)
+cl_cs2_crosshair_type 
+cl_cso_crosshair_type
+cl_cs2_crosshairthickness
+cl_cs2_crosshair_drawoutline
+cl_cs2_crosshair_outlinethickness
+cl_cs2_crosshairalpha
+cl_cs2_crosshairusealpha
+cl_cs2_crosshairdot
+cl_cs2_crosshairgap
+cl_cs2_crosshair_t
+cl_cs2_crosshair_red
+cl_cs2_crosshair_green
+cl_cs2_crosshair_blue
 
 ```
