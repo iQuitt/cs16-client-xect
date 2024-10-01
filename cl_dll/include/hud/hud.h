@@ -144,6 +144,8 @@ public:
 	void CalcCrosshairSize();
 	void CalcCrosshairDrawMode();
 	void CalcCrosshairColor();
+	int DrawCrosshairCS2( float flTime, int weaponid, int iBarSize, float flCrosshairDistance, bool bAdditive, int r, int g, int b, int a );
+	int DrawCrosshairCSO( float flTime, int weaponid, int iBarSize, float flCrosshairDistance, bool bAdditive, int r, int g, int b, int a );
 
 	int DrawWList(float flTime);
 	CHudMsgFunc(CurWeapon);
@@ -196,6 +198,21 @@ private:
 	convar_t *m_pClCrosshairColor;
 	convar_t *m_pClCrosshairTranslucent;
 	convar_t *m_pClCrosshairSize;
+	convar_t *m_pClCrosshairSizecs2;
+	convar_t *m_pClCrosshairTypecs2;
+	convar_t *m_pClCrosshairThickness;
+	convar_t *m_pClCrosshairDrawOutline;
+	convar_t *m_pClCrosshairOutlineThickness;
+	convar_t *m_pClCrosshairAlpha;
+	convar_t *m_pClCrosshairUseAlpha;
+	convar_t *m_pClCrosshairDot;
+	convar_t *m_pClCrosshairGap;
+	convar_t *m_pClCrosshairT;
+	convar_t *m_pClCrosshairRED;
+	convar_t *m_pClCrosshairBLUE;
+	convar_t *m_pClCrosshairGREEN;
+	convar_t *m_pClCrosshair;
+	convar_t *m_pClCrosshairTypecso;
 	cvar_t *m_pClDynamicCrosshair;
 	cvar_t *m_pHud_FastSwitch;
 	cvar_t *m_pHud_DrawHistory_Time;

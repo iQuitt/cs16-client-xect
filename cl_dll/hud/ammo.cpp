@@ -94,6 +94,11 @@ WeaponsResource gWR;
 int g_weaponselect = 0;
 int g_iShotsFired;
 
+template < typename T >
+T clamp( const T &n, const T &lower, const T &upper )
+{
+   return max( lower, min( n, upper ) );
+}
 void WeaponsResource :: LoadAllWeaponSprites( void )
 {
 	for (int i = 0; i < MAX_WEAPONS; i++)
@@ -354,6 +359,22 @@ int CHudAmmo::Init(void)
 	m_pClCrosshairTranslucent = (convar_t*)CVAR_CREATE( "cl_crosshair_translucent", "1", FCVAR_ARCHIVE );
 	m_pClCrosshairSize = (convar_t*)CVAR_CREATE( "cl_crosshair_size", "auto", FCVAR_ARCHIVE );
 	m_pClDynamicCrosshair = CVAR_CREATE("cl_dynamiccrosshair", "1", FCVAR_ARCHIVE);
+
+	m_pClCrosshair                  = (convar_t *)CVAR_CREATE( "cl_crosshair", "cso", FCVAR_ARCHIVE ); // available is cso and cs2
+	m_pClCrosshairTypecs2	= (convar_t*)CVAR_CREATE( "cl_cs2_crosshair_type", "1", FCVAR_ARCHIVE );
+	m_pClCrosshairTypecso         = (convar_t *)CVAR_CREATE( "cl_cso_crosshair_type", "1", FCVAR_ARCHIVE );
+	m_pClCrosshairSizecs2        = (convar_t*)CVAR_CREATE( "cl_cs2_crosshairsize", "5", FCVAR_ARCHIVE );
+	m_pClCrosshairThickness   = (convar_t*)CVAR_CREATE( "cl_cs2_crosshairthickness", "0.5", FCVAR_ARCHIVE );
+	m_pClCrosshairDrawOutline = (convar_t*)CVAR_CREATE( "cl_cs2_crosshair_drawoutline", "0", FCVAR_ARCHIVE );
+	m_pClCrosshairOutlineThickness = (convar_t *)CVAR_CREATE( "cl_cs2_crosshair_outlinethickness", "1", FCVAR_ARCHIVE );
+	m_pClCrosshairAlpha            = (convar_t *)CVAR_CREATE( "cl_cs2_crosshairalpha", "200", FCVAR_ARCHIVE );
+	m_pClCrosshairUseAlpha         = (convar_t *)CVAR_CREATE( "cl_cs2_crosshairusealpha", "0", FCVAR_ARCHIVE );
+	m_pClCrosshairDot              = (convar_t *)CVAR_CREATE( "cl_cs2_crosshairdot", "0", FCVAR_ARCHIVE );
+	m_pClCrosshairGap              = (convar_t *)CVAR_CREATE( "cl_cs2_crosshairgap", "1", FCVAR_ARCHIVE );
+	m_pClCrosshairT                = (convar_t *)CVAR_CREATE( "cl_cs2_crosshair_t", "0", FCVAR_ARCHIVE );
+	m_pClCrosshairRED              = (convar_t *)CVAR_CREATE( "cl_cs2_crosshair_red", "255", FCVAR_ARCHIVE );
+	m_pClCrosshairGREEN             = (convar_t *)CVAR_CREATE( "cl_cs2_crosshair_green", "255", FCVAR_ARCHIVE );
+	m_pClCrosshairBLUE              = (convar_t *)CVAR_CREATE( "cl_cs2_crosshair_blue", "255", FCVAR_ARCHIVE );
 
 	m_iFlags = HUD_DRAW | HUD_THINK; //!!!
 	m_R = 50;
@@ -1259,7 +1280,6 @@ void CHudAmmo::DrawCrosshair( float flTime )
 {
 	int flags, iDeltaDistance, iDistance, iLength, weaponid;
 	float flCrosshairDistance;
-
 	if( !m_pWeapon )
 		return;
 
@@ -1364,33 +1384,211 @@ void CHudAmmo::DrawCrosshair( float flTime )
 	}
 
 
-	// drawing
-	if ( gHUD.m_NVG.m_iFlags )
+	if ( m_pClCrosshair->value == 1)
 	{
-		if ( gHUD.m_NVG.cl_crosshair_nvg->value )
-		{
-			FillRGBABlend( WEST_XPOS, EAST_WEST_YPOS, iLength, 1, 250, 50, 50, m_iAlpha );
-			FillRGBABlend( EAST_XPOS, EAST_WEST_YPOS, iLength, 1, 250, 50, 50, m_iAlpha );
-			FillRGBABlend( NORTH_SOUTH_XPOS, NORTH_YPOS, 1, iLength, 250, 50, 50, m_iAlpha );
-			FillRGBABlend( NORTH_SOUTH_XPOS, SOUTH_YPOS, 1, iLength, 250, 50, 50, m_iAlpha );
-		}
+		if ( gHUD.m_NVG.m_iFlags )
+			DrawCrosshairCSO( flTime, weaponid, iLength, flCrosshairDistance, false, 250, 50, 50, m_iAlpha );// FROM CSMOE
+		else
+			DrawCrosshairCSO( flTime, weaponid, iLength, flCrosshairDistance, m_bAdditive, m_R, m_G, m_B, m_iAlpha );// FROM CSMOE
+
 	}
-	else if ( m_bAdditive )
+	else if ( m_pClCrosshair->value == 2)
 	{
-		FillRGBA(WEST_XPOS, EAST_WEST_YPOS,		iLength, 1, m_R, m_G, m_B, m_iAlpha);
-		FillRGBA(EAST_XPOS, EAST_WEST_YPOS,		iLength, 1, m_R, m_G, m_B, m_iAlpha);
-		FillRGBA(NORTH_SOUTH_XPOS,	NORTH_YPOS,	1, iLength, m_R, m_G, m_B, m_iAlpha);
-		FillRGBA(NORTH_SOUTH_XPOS, SOUTH_YPOS,	1, iLength, m_R, m_G, m_B, m_iAlpha);
+		if ( gHUD.m_NVG.m_iFlags )
+			DrawCrosshairCS2( flTime, weaponid, iLength, flCrosshairDistance, false, 250,50,50, m_iAlpha );
+		else
+			DrawCrosshairCS2( flTime, weaponid, iLength, flCrosshairDistance, m_bAdditive, m_pClCrosshairRED->value, m_pClCrosshairGREEN->value, m_pClCrosshairBLUE->value, m_iAlpha );
 	}
 	else
 	{
-		FillRGBABlend(WEST_XPOS, EAST_WEST_YPOS,	iLength, 1, m_R, m_G, m_B, m_iAlpha);
-		FillRGBABlend(EAST_XPOS, EAST_WEST_YPOS,	iLength, 1, m_R, m_G, m_B, m_iAlpha);
-		FillRGBABlend(NORTH_SOUTH_XPOS, NORTH_YPOS, 1, iLength, m_R, m_G, m_B, m_iAlpha);
-		FillRGBABlend(NORTH_SOUTH_XPOS, SOUTH_YPOS, 1, iLength, m_R, m_G, m_B, m_iAlpha);
+		// drawing
+		if ( gHUD.m_NVG.m_iFlags )
+		{
+			if ( gHUD.m_NVG.cl_crosshair_nvg->value )
+			{
+				FillRGBABlend( WEST_XPOS, EAST_WEST_YPOS, iLength, 1, 250, 50, 50, m_iAlpha );
+				FillRGBABlend( EAST_XPOS, EAST_WEST_YPOS, iLength, 1, 250, 50, 50, m_iAlpha );
+				FillRGBABlend( NORTH_SOUTH_XPOS, NORTH_YPOS, 1, iLength, 250, 50, 50, m_iAlpha );
+				FillRGBABlend( NORTH_SOUTH_XPOS, SOUTH_YPOS, 1, iLength, 250, 50, 50, m_iAlpha );
+			}
+		}
+		else if ( m_bAdditive )
+		{
+			FillRGBA( WEST_XPOS, EAST_WEST_YPOS, iLength, 1, m_R, m_G, m_B, m_iAlpha );
+			FillRGBA( EAST_XPOS, EAST_WEST_YPOS, iLength, 1, m_R, m_G, m_B, m_iAlpha );
+			FillRGBA( NORTH_SOUTH_XPOS, NORTH_YPOS, 1, iLength, m_R, m_G, m_B, m_iAlpha );
+			FillRGBA( NORTH_SOUTH_XPOS, SOUTH_YPOS, 1, iLength, m_R, m_G, m_B, m_iAlpha );
+		}
+		else
+		{
+			FillRGBABlend( WEST_XPOS, EAST_WEST_YPOS, iLength, 1, m_R, m_G, m_B, m_iAlpha );
+			FillRGBABlend( EAST_XPOS, EAST_WEST_YPOS, iLength, 1, m_R, m_G, m_B, m_iAlpha );
+			FillRGBABlend( NORTH_SOUTH_XPOS, NORTH_YPOS, 1, iLength, m_R, m_G, m_B, m_iAlpha );
+			FillRGBABlend( NORTH_SOUTH_XPOS, SOUTH_YPOS, 1, iLength, m_R, m_G, m_B, m_iAlpha );
+		}
 	}
+
 	return;
 }
+
+
+int CHudAmmo::DrawCrosshairCSO( float flTime, int weaponid, int iBarSize, float flCrosshairDistance, bool bAdditive, int r, int g, int b, int a )
+{
+	bool bDrawPoint  = false;
+	bool bDrawCircle = false;
+	bool bDrawCross  = false;
+
+	void ( *pfnFillRGBA )( int x, int y, int w, int h, int r, int g, int b, int a ) = ( bAdditive == false ) ? gEngfuncs.pfnFillRGBABlend : gEngfuncs.pfnFillRGBA;
+
+	switch ( (int)m_pClCrosshairTypecso->value )
+	{
+		case 1:
+		{
+			bDrawPoint = true;
+			bDrawCross = true;
+			break;
+		}
+
+		case 2:
+		{
+			bDrawPoint  = true;
+			bDrawCircle = true;
+			break;
+		}
+
+		case 3:
+		{
+			bDrawPoint  = true;
+			bDrawCircle = true;
+			bDrawCross  = true;
+			break;
+		}
+
+		case 4:
+		{
+			bDrawPoint = true;
+			break;
+		}
+
+		default:
+		{
+			bDrawCross = true;
+			break;
+		}
+	}
+
+	if ( bDrawCircle )
+	{
+		float radius = ( iBarSize / 2 ) + flCrosshairDistance;
+		int count = (int)( ( cos( 0.7853981852531433 ) * radius ) + 0.5 );
+
+		for ( int i = 0; i < count; i++ )
+		{
+			int size = sqrt( ( radius * radius ) - (float)( i * i ) );
+
+			pfnFillRGBA( ( ScreenWidth / 2 ) + i, ( ScreenHeight / 2 ) + size, 1, 1, r, g, b, a );
+			pfnFillRGBA( ( ScreenWidth / 2 ) + i, ( ScreenHeight / 2 ) - size, 1, 1, r, g, b, a );
+			pfnFillRGBA( ( ScreenWidth / 2 ) - i, ( ScreenHeight / 2 ) + size, 1, 1, r, g, b, a );
+			pfnFillRGBA( ( ScreenWidth / 2 ) - i, ( ScreenHeight / 2 ) - size, 1, 1, r, g, b, a );
+			pfnFillRGBA( ( ScreenWidth / 2 ) + size, ( ScreenHeight / 2 ) + i, 1, 1, r, g, b, a );
+			pfnFillRGBA( ( ScreenWidth / 2 ) + size, ( ScreenHeight / 2 ) - i, 1, 1, r, g, b, a );
+			pfnFillRGBA( ( ScreenWidth / 2 ) - size, ( ScreenHeight / 2 ) + i, 1, 1, r, g, b, a );
+			pfnFillRGBA( ( ScreenWidth / 2 ) - size, ( ScreenHeight / 2 ) - i, 1, 1, r, g, b, a );
+		}
+	}
+
+	if ( bDrawPoint )
+		pfnFillRGBA( ( ScreenWidth / 2 ) - 1, ( ScreenHeight / 2 ) - 1, 3, 3, r, g, b, a );
+
+	if ( bDrawCross )
+	{
+		pfnFillRGBA( ( ScreenWidth / 2 ) - (int)flCrosshairDistance - iBarSize + 1, ScreenHeight / 2, iBarSize, 1, r, g, b, a );
+		pfnFillRGBA( ( ScreenWidth / 2 ) + (int)flCrosshairDistance, ScreenHeight / 2, iBarSize, 1, r, g, b, a );
+		pfnFillRGBA( ScreenWidth / 2, ( ScreenHeight / 2 ) - (int)flCrosshairDistance - iBarSize + 1, 1, iBarSize, r, g, b, a );
+		pfnFillRGBA( ScreenWidth / 2, ( ScreenHeight / 2 ) + (int)flCrosshairDistance, 1, iBarSize, r, g, b, a );
+	}
+
+	return 1;
+}
+
+
+int CHudAmmo::DrawCrosshairCS2( float flTime, int weaponid, int iBarSize, float flCrosshairDistance, bool bAdditive, int r, int g, int b, int a )
+{
+	int size               = clamp( (int)m_pClCrosshairSizecs2->value, -20, 20 );
+	float thickness        = clamp( m_pClCrosshairThickness->value, -2.0f, 2.0f );
+	float outlineThickness = clamp( m_pClCrosshairOutlineThickness->value, 0.1f, 3.0f );
+	int alpha              = clamp( (int)m_pClCrosshairAlpha->value, 10, 250 );
+	float gap              = clamp( m_pClCrosshairGap->value, -10.0f, 10.0f );
+	bool tStyle            = ( m_pClCrosshairT->value != 0 );
+
+
+	// bitmedi | havent over
+	bool m_bStatic      = ( m_pClCrosshairTypecs2->value == 1 || m_pClCrosshairTypecs2->value == 4 );
+	bool m_bClassic     = ( m_pClCrosshairTypecs2->value >= 2 );
+	bool m_bDynamicDots = ( m_pClCrosshairTypecs2->value == 2 || m_pClCrosshairTypecs2->value == 3 );
+	bool m_bMixed       = ( m_pClCrosshairTypecs2->value == 5 );
+
+	float screenScale   = min( ScreenHeight, ScreenWidth ) / 1080.0f;
+	int m_iCrosshairSize      = (int)( size * screenScale );
+	int m_iThickness = max( 1, (int)( thickness * screenScale ) );
+
+	if ( !m_bStatic )
+	{
+		gap += flCrosshairDistance;
+	}
+	int m_iGap = (int)( gap * screenScale );
+
+
+	void ( *pfnFillRGBA )( int x, int y, int w, int h, int r, int g, int b, int a ) = ( bAdditive == false ) ? gEngfuncs.pfnFillRGBABlend : gEngfuncs.pfnFillRGBA;
+
+	if ( m_pClCrosshairDrawOutline->value != 0 )
+	{
+		int m_iOutlineThickness = (int)outlineThickness;
+		for ( int i = -m_iOutlineThickness; i <= m_iOutlineThickness; i++ )
+		{
+			for ( int j = -m_iOutlineThickness; j <= m_iOutlineThickness; j++ )
+			{
+				if ( i == 0 && j == 0 )
+					continue;
+
+				if ( !tStyle )
+					pfnFillRGBA( ScreenWidth / 2 + i, ScreenHeight / 2 - m_iCrosshairSize - m_iGap + j, ScreenWidth / 2 + i, ScreenHeight / 2 - m_iGap + j, 0, 0, 0, alpha );
+
+				pfnFillRGBA( ScreenWidth / 2 - m_iCrosshairSize - m_iGap + i, ScreenHeight / 2 + j, ScreenWidth / 2 - m_iGap + i, ScreenHeight / 2 + j, 0, 0, 0, alpha );
+				pfnFillRGBA( ScreenWidth / 2 + m_iGap + i, ScreenHeight / 2 + j, ScreenWidth / 2 + m_iCrosshairSize + m_iGap + i, ScreenHeight / 2 + j, 0, 0, 0, alpha );
+
+				pfnFillRGBA( ScreenWidth / 2 + i, ScreenHeight / 2 + m_iGap + j, ScreenWidth / 2 + i, ScreenHeight / 2 + m_iCrosshairSize + m_iGap + j, 0, 0, 0, alpha );
+			}
+		}
+	}
+
+	a = m_pClCrosshairUseAlpha->value != 0 ? alpha : 255;
+	if ( !tStyle )
+		pfnFillRGBA( ScreenWidth / 2, ScreenHeight / 2 - m_iCrosshairSize - m_iGap, ScreenWidth / 2, ScreenHeight / 2 - m_iGap, r, g, b, a );
+
+	pfnFillRGBA( ScreenWidth / 2 - m_iCrosshairSize - m_iGap, ScreenHeight / 2, ScreenWidth / 2 - m_iGap, ScreenHeight / 2, r, g, b, a );
+	pfnFillRGBA( ScreenWidth / 2 + m_iGap, ScreenHeight / 2, ScreenWidth / 2 + m_iCrosshairSize + m_iGap, ScreenHeight / 2, r, g, b, a );
+
+	pfnFillRGBA( ScreenWidth / 2, ScreenHeight / 2 + m_iGap, ScreenWidth / 2, ScreenHeight / 2 + m_iCrosshairSize + m_iGap, r, g, b, a );
+
+	if ( m_pClCrosshairDot->value != 0 )
+	{
+		pfnFillRGBA( ScreenWidth / 2 - m_iThickness / 2, ScreenHeight / 2 - m_iThickness / 2, m_iThickness, m_iThickness, r, g, b, a );
+	}
+
+	if ( m_bDynamicDots || m_bMixed )
+	{
+		int dotSize     = max( 1, m_iThickness );
+		int dotDistance = m_iCrosshairSize + m_iGap + dotSize;
+		pfnFillRGBA( ScreenWidth / 2 - dotDistance, ScreenHeight / 2 - dotSize / 2, dotSize, dotSize, r, g, b, a );
+		pfnFillRGBA( ScreenWidth / 2 + dotDistance - dotSize, ScreenHeight / 2 - dotSize / 2, dotSize, dotSize, r, g, b, a );
+		pfnFillRGBA( ScreenWidth / 2 - dotSize / 2, ScreenHeight / 2 - dotDistance, dotSize, dotSize, r, g, b, a );
+		pfnFillRGBA( ScreenWidth / 2 - dotSize / 2, ScreenHeight / 2 + dotDistance - dotSize, dotSize, dotSize, r, g, b, a );
+	}
+
+	return 1;
+}
+
 
 void CHudAmmo::CalcCrosshairSize()
 {
