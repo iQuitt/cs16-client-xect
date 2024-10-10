@@ -478,6 +478,27 @@ void CHudMessage::MessageAdd( const char *pName, float time )
 				message->pName = szCustomName;
 				message->pMessage = szCustomText;
 			}
+			// hudmessage mesajlarý bilgilerini burdan alabiliyoruz hitindicator için gelecekde lazým olcak biraz köylü usulu mantýk ama yapýcak birþey yok clientside moment,
+			// alttaki kod sadece sayýlarý veriyor hitindicatör için kullanacaðým gelecekde 
+			//const char *messageContent = (char *)message->pMessage;
+
+			// const char *ptr = messageContent;
+			// while ( *ptr != '\0' )
+			//{
+			//	if ( isdigit( *ptr ) && message->b1 > 155 && message->b2 > 155 )
+			//	{
+			//		int intValue = atoi( ptr );
+
+			//		gEngfuncs.Con_Printf( "^5[^2Info^5]^3 Found Integer Value in Hudmessage: ^6%d\nblue1 %d\nblue2 %d\n", intValue,message->b1,message->b2 );
+
+			//		while ( isdigit( *ptr ) )
+			//			ptr++;
+			//	}
+			//	else
+			//	{
+			//		ptr++;
+			//	}
+			//}
 
 			for ( j = 0; j < maxHUDMessages; j++ )
 			{
@@ -520,7 +541,7 @@ int CHudMessage::MsgFunc_HudText( const char *pszName,  int iSize, void *pbuf )
 	MessageAdd( pString, gHUD.m_flTime );
 	// Remember the time -- to fix up level transitions
 	m_parms.time = gHUD.m_flTime;
-
+	
 	// Turn on drawing
 	m_iFlags |= HUD_DRAW;
 

@@ -360,7 +360,7 @@ int CHudAmmo::Init(void)
 	m_pClCrosshairSize = (convar_t*)CVAR_CREATE( "cl_crosshair_size", "auto", FCVAR_ARCHIVE );
 	m_pClDynamicCrosshair = CVAR_CREATE("cl_dynamiccrosshair", "1", FCVAR_ARCHIVE);
 
-	m_pClCrosshair                  = (convar_t *)CVAR_CREATE( "cl_crosshair", "cso", FCVAR_ARCHIVE ); // available is cso and cs2
+	m_pClCrosshair                  = (convar_t *)CVAR_CREATE( "cl_crosshair", "1", FCVAR_ARCHIVE ); // available is cso(1) and cs2(2)
 	m_pClCrosshairTypecs2	= (convar_t*)CVAR_CREATE( "cl_cs2_crosshair_type", "1", FCVAR_ARCHIVE );
 	m_pClCrosshairTypecso         = (convar_t *)CVAR_CREATE( "cl_cso_crosshair_type", "1", FCVAR_ARCHIVE );
 	m_pClCrosshairSizecs2        = (convar_t*)CVAR_CREATE( "cl_cs2_crosshairsize", "5", FCVAR_ARCHIVE );

@@ -1,4 +1,4 @@
-/***
+﻿/***
 *
 *	Copyright (c) 1999, Valve LLC. All rights reserved.
 *	
@@ -28,11 +28,14 @@
 #include <string.h>
 #include <stdio.h>
 #include "draw_util.h"
-
+#include <algorithm>
+#include "com_model.h"
+#include "r_studioint.h"
 hud_player_info_t   g_PlayerInfoList[MAX_PLAYERS+1]; // player info from the engine
 extra_player_info_t	g_PlayerExtraInfo[MAX_PLAYERS+1]; // additional player info sent directly to the client dll
 team_info_t         g_TeamInfo[MAX_TEAMS+1];
 hostage_info_t      g_HostageInfo[MAX_HOSTAGES+1];
+extern engine_studio_api_t IEngineStudio;
 int g_iUser1;
 int g_iUser2;
 int g_iUser3;
@@ -65,7 +68,9 @@ inline int DEATHS_POS_END()		{ return xend - 80; }
 inline int PING_POS_START()		{ return xend - 70; }
 inline int PING_POS_END()		{ return xend - 10; }
 
-//#include "vgui_TeamFortressViewport.h"
+inline int WEAPON_POS_START()	{ return xend - 430; }
+inline int WEAPON_POS_END( )	{ return xend - 600; }
+
 
 DECLARE_COMMAND( m_Scoreboard, ShowScores )
 DECLARE_COMMAND( m_Scoreboard, HideScores )
@@ -82,7 +87,7 @@ int CHudScoreboard :: Init( void )
 {
 	gHUD.AddHudElem( this );
 
-	hud_scoreboard = gEngfuncs.pfnRegisterVariable( "hud_scoreboard", "1", FCVAR_ARCHIVE );// 1 old cso scoreboard 2 new cso scoreboard 3 cs2 scoreboard (not ready)
+	hud_scoreboard = gEngfuncs.pfnRegisterVariable( "hud_topscoreboard", "1", FCVAR_ARCHIVE );// 1 old cso scoreboard 2 new cso scoreboard 3 cs2 scoreboard (not ready)
 	// Hook messages & commands here
 	HOOK_COMMAND( "+showscores", ShowScores );
 	HOOK_COMMAND( "-showscores", HideScores );
@@ -259,7 +264,78 @@ int CHudScoreboard :: DrawScoreboard( float fTime )
 	return 1;
 }
 
-int CHudScoreboard :: DrawTeams( float list_slot )
+void CHudScoreboard::GetPlayerWeaponModel( int iIndex )
+{
+	if ( iIndex < 1 || iIndex >= MAX_PLAYERS )
+	{
+		return;
+	}
+	cl_entity_t *ent = gEngfuncs.GetEntityByIndex( iIndex );
+	if ( !ent )
+	{
+		return;
+	}
+	model_t *pweaponmodel = IEngineStudio.GetModelByIndex( ent->curstate.weaponmodel );
+	if ( !pweaponmodel || !pweaponmodel->name )
+	{
+		return;
+	}
+	const char *modelName = pweaponmodel->name;
+	int modelNameLen      = strlen( modelName );
+	if ( modelNameLen < 12 || iIndex < 1 || iIndex >= MAX_PLAYERS )
+	{
+		return;
+	}
+
+
+	// TR: sunucularda farklı model isimleri p_ ekine sahip oluyor veya klasöre ekliyse model örnekklasör/p_modelismi gibi bilgi geri dönüyor burada /p_ yada p_ ekinin önünde olan ismi alıyoruz sadece
+	// EN: Different model names on servers have the p_ suffix or if they are added to a folder, information such as examplefolder/p_modelname is returned. Here we only take the name in front of the /p_ or p_ suffix.
+	const char *pStart = strstr( modelName, "/p_" );
+	if ( !pStart )
+		pStart = strstr( modelName, "p_" );
+
+	if ( pStart )
+	{
+		// TR: /p_ yada p_ yi sil 
+		// EN: remove /p_ or p_
+		pStart += ( pStart[0] == '/' ? 3 : 2 );
+
+
+		// TR: silahın /p_ yada p_ ekinden sonraki ismi bul 
+		// EN :find the name of the weapon after the /p_ or p_ suffix
+		const char *pEnd = strrchr( pStart, '.' );
+		if ( !pEnd )
+			pEnd = modelName + modelNameLen;
+
+		int iLen = pEnd - pStart;
+		if ( iLen >= sizeof( g_PlayerExtraInfo[iIndex].weaponName ) )
+		{
+			iLen = sizeof( g_PlayerExtraInfo[iIndex].weaponName ) - 1;
+		}
+
+		strncpy( g_PlayerExtraInfo[iIndex].weaponName, pStart, iLen );
+		g_PlayerExtraInfo[iIndex].weaponName[iLen] = '\0';
+	}
+	else
+	{
+		int iLen = modelNameLen - 12;
+		if ( iLen >= sizeof( g_PlayerExtraInfo[iIndex].weaponName ) )
+		{
+			iLen = sizeof( g_PlayerExtraInfo[iIndex].weaponName ) - 1;
+		}
+		strncpy( g_PlayerExtraInfo[iIndex].weaponName, modelName + 9, iLen );
+		g_PlayerExtraInfo[iIndex].weaponName[iLen] = '\0';
+	}
+
+	// TR: silah bilgisini alırken .mdl çizdirtmeye çalışıyor ama nedense sadece nokta çiziliyor ak47. gibi burda sadece .'yi siliyorum
+	// EN: When getting the weapon information, it tries to draw .mdl but for some reason only a dot is drawn, like ak47. Here I just delete the dot
+	int len = strlen( g_PlayerExtraInfo[iIndex].weaponName );
+	if ( len > 0 && g_PlayerExtraInfo[iIndex].weaponName[len - 1] == '.' )
+	{
+		g_PlayerExtraInfo[iIndex].weaponName[len - 1] = '\0';
+	}
+}
+int CHudScoreboard ::DrawTeams( float list_slot )
 {
 	int j;
 	int ypos = ystart + (list_slot * ROW_GAP) + 5;
@@ -277,12 +353,17 @@ int CHudScoreboard :: DrawTeams( float list_slot )
 	// recalc the team scores, then draw them
 	for ( int i = 1; i < MAX_PLAYERS; i++ )
 	{
+
 		if ( !g_PlayerInfoList[i].name || !g_PlayerInfoList[i].name[0] )
 			continue; // empty player slot, skip
 
 		if ( g_PlayerExtraInfo[i].teamname[0] == 0 )
 			continue; // skip over players who are not in a team
-
+		if (gHUD.m_CHudCFMarks.iTeam == TEAM_SPECTATOR)
+		if ( g_PlayerExtraInfo[i].teamnumber == gHUD.m_CHudCFMarks.iTeam )
+		{
+			GetPlayerWeaponModel( i );
+		}	
 		// find what team this player is in
 		for ( j = 1; j <= m_iNumTeams; j++ )
 		{
@@ -530,6 +611,11 @@ int CHudScoreboard :: DrawPlayers( float list_slot, int nameoffset, const char *
 			DrawUtils::DrawHudNumberString( HEALTH_POS_END( ), ypos, HEALTH_POS_START( ), g_PlayerExtraInfo[best_player].healthinfo, r, g, b );
 		}
 
+		// draw weapon
+		if ( gHUD.m_Scoreboard.m_pWeaponName && !g_PlayerExtraInfo[best_player].dead )
+		{
+			DrawUtils::DrawHudString( WEAPON_POS_END( ), ypos, WEAPON_POS_START( ), g_PlayerExtraInfo[best_player].weaponName, r, g, b );
+		}
 		// draw money
 		if ( g_PlayerExtraInfo[best_player].account != -1 )
 		{
@@ -719,6 +805,7 @@ int CHudScoreboard :: MsgFunc_TeamScore( const char *pszName, int iSize, void *p
 	BufferReader reader( pszName, pbuf, iSize );
 	char *TeamName = reader.ReadString();
 	int i;
+
 
 	// find the team matching the name
 	for ( i = 1; i <= m_iNumTeams; i++ )

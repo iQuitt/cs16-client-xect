@@ -338,7 +338,7 @@ public:
 	inline int GetTeamAliveCounts( short teamnumber );
 	inline bool IsConnected( int playerIndex );
 	inline int GetTeamCounts( short teamnumber );
-
+	void GetPlayerWeaponModel( int iIndex );
 
 	CHudUserCmd(ShowScores);
 	CHudUserCmd(HideScores);
@@ -381,7 +381,7 @@ public:
 	int m_iText_Round;
 	bool m_bIsTeamplay;
 	float m_flNextCache;
-
+	char m_pWeaponName[64];//MAX_MODEL_NAME
 	void CacheTeamAliveNumber( void );
 	void BuildHudNumberRect( int moe, wrect_t *prc, int w, int h, int xOffset, int yOffset );
 	int DrawHudNumber( int moe, wrect_t *prc, int x, int y, int iFlags, int iNumber, int r, int g, int b );
@@ -482,6 +482,7 @@ struct extra_player_info_t
 	float radarflashtime;
 	float radarflashtimedelta;
 	char location[32];
+	char weaponName[64];//MAX_MODEL_NAME
 };
 
 struct team_info_t 
@@ -725,6 +726,16 @@ class TextureManager
 };
 
 
+
+#ifdef _WIN32
+#pragma once
+#endif
+
+#ifndef MAX_HOSTAGES
+#define MAX_HOSTAGES 24
+#endif
+
+
 class CHudCS2 : public CHudBase
 {
 	enum CS2Resources
@@ -785,7 +796,7 @@ class CHudCFMarks : public CHudBase
 	void CFupdateAnimation( float deltaTime );
 	enum Marks_Type
 	{
-		CF_MARK_EXPLOSIVE_C4, // Crossfire 15th aniversary kill marks
+		CF_MARK_EXPLOSIVE_C4, // Crossfire 15th default kill marks
 		CF_MARK_DEFUSE_C4,
 		CF_MARK_GRENADE,
 		CF_MARK_HEADSHOT,
@@ -1563,6 +1574,7 @@ class CHudCFMarks : public CHudBase
 		CF_MARK_VALORBEAST_FIRSTKILL,
 		CF_MARK_VALORBEAST_LASTKILL,
 		CF_MARK_VALORBEAST_REVENGE,
+
 
 		CF_MARK_HEADSHOT_GOLD_VVIP,
 		CF_MARK_HEADSHOT_VVIP,
