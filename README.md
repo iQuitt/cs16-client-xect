@@ -5,7 +5,7 @@ New cs16 client based on old FWGS repository (v1.33).
 - [x] **255 HP HUD Limit Fix**
 - [x] **Ported and redesigned C++ based mainui**
 - [x] **Nightvision fix**
-- [x] **HP & Money Display on Scoreboard**
+- [x] **HP, Money and Weapon Name Display on Scoreboard**
 - [x] **Default cvar values same with original CS 1.6**
 - [x] Win Image (CT & T WIN)
 - [x] Speedometer (Console string, HUD and Nexon's Floatingdamage)
