@@ -245,6 +245,8 @@ int CHudScoreboard :: DrawScoreboard( float fTime )
 	DrawUtils::DrawHudStringReverse( KILLS_POS_END(), ypos, 0, "Score", 255, 140, 0 );
 	DrawUtils::DrawHudStringReverse( DEATHS_POS_END(), ypos, DEATHS_POS_START(), "Deaths", 255, 140, 0 );
 	DrawUtils::DrawHudStringReverse( PING_POS_END(), ypos, PING_POS_START(), "Latency", 255, 140, 0 );
+	DrawUtils::DrawHudStringReverse( WEAPON_POS_END(), ypos, 0, "Weapon", 255, 140, 0 );
+
 
 	list_slot += 2;
 	ypos = ystart + (list_slot * ROW_GAP);
@@ -360,7 +362,10 @@ int CHudScoreboard ::DrawTeams( float list_slot )
 		if ( g_PlayerExtraInfo[i].teamname[0] == 0 )
 			continue; // skip over players who are not in a team
 		if (gHUD.m_CHudCFMarks.iTeam == TEAM_SPECTATOR)
-		if ( g_PlayerExtraInfo[i].teamnumber == gHUD.m_CHudCFMarks.iTeam )
+		{
+			GetPlayerWeaponModel( i );
+		}
+		else if ( g_PlayerExtraInfo[i].teamnumber == gHUD.m_CHudCFMarks.iTeam )
 		{
 			GetPlayerWeaponModel( i );
 		}	
