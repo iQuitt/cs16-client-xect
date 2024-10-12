@@ -408,13 +408,22 @@ void V_CalcViewRoll ( struct ref_params_s *pparams )
 
 	pparams->viewangles[ROLL] += side;
 
-	if ( pparams->health <= 0 && ( pparams->viewheight[2] != 0 ) )
-	{
-		// only roll the view if the player is dead and the viewheight[2] is nonzero
-		// this is so deadcam in multiplayer will work.
-		pparams->viewangles[ROLL] = 80;	// dead view angle
-		return;
-	}
+
+	// TR: Bu sadece half-life için geçerli olan öldüðümüzde kameramýzý  yan yatýran bir kod. Counter strikede böyle bir olay yok zaten çalýþmýyor ama Zombie Plague sunucularýnda kameralarýn nadiren yan yatma sebebi bu koddur.
+	// çünkü clientdatadan gelen health verisini zombie plague 511den yükseðe çýkartmýyor yani asýl canýmýzý vermiyor. kaynak kodundaki bi kýsým yüzünden böyle oluyor. henüz bu sorunu yapan kod bulunamadý.
+	// clientdatadaki sahte health verimiz 0 olursa kameramýz aþaðýdaki kod yüzünden yan yatýyor.
+	// 
+	// EN: When we die in Counter Strike, there is no deadcamera like in Half Life. However, the reason why cameras rarely tilt on Zombie Plague servers is this code.
+	// Because zombie plague does not increase the health data from clientdata above 511, so it does not give us our real HP. This is due to a part in the source code. its has been found yet that causes this problem.
+	// If our fake health data in clientdata is 0, our camera tilts because of the code below.
+	// 
+	//if ( pparams->health <= 0 && ( pparams->viewheight[2] != 0 ) )
+	//{
+	//	// only roll the view if the player is dead and the viewheight[2] is nonzero
+	//	// this is so deadcam in multiplayer will work.
+	//	pparams->viewangles[ROLL] = 80;	// dead view angle
+	//	return;
+	//}
 }
 
 
