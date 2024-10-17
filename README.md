@@ -23,44 +23,39 @@ New cs16 client based on old FWGS repository (v1.33).
 Need some cool features on Xash3D 0.19.x like fog, weapon inspect, xhair? Look at [Physic3D](https://github.com/Physic3D/physic3d).
 
 
-## Commands
-```py
-hud_winimage 
-hud_speedometer ( 1 Console String 2 HUD 3 Nexon's floatingdamage tga )
-hud_scoreboard ( 1 Old Cso Scoreboard 2 New Cso Scoreboard )
-hud_killmark ( 1 Old Cso Kill mark 2 New Cso Killmark 3 Crossfire Killmark )
-hud_killicon_display_time
-hud_killeffect_display_time
-hud_crossfire_killmark_type ( 1 default, 2 15th anniversary, 3 Angelic Beast, 4 Armored Beast, 5 Blueneon, 6 Bornbeast2, 7 Bornbeast2NG, 8 CFS_2019, 9 CHAMPQ9, 10 christimas
-	// 11 Christmas two, 12 Demonic Beast, 13 Disco, 14 Dominator, 15 Fury Beast, 16 Fury BeastNG,17 Gaming Glory, 18 Halloween, 19 Halloween 2, 20 Hero,
-	//21 IronBeast2, 22 IronBeast2NG, 23 Kar98k Satelite, 24 M82A1 Angelic Beast, 25 M82A1 Demonic Beast, 26 New Year 27  Nightmare, 28 Rankmach19, 29 Rankmach19 two, 30 Rankmach25
-	// 31 Rankmach25 two, 32 Rankmach26, 33 Rankmach26 Two, 34 Rankmach26 Three, 35 Reactive Armor Set, 36 Red Nano, 37 Summer, 38 Summer 2, 39 TianShen, 40 ValorBeast )
+## Commands (Cvars)
+<details>
 
-// Speedometer commands
-hud_speedometer
-hud_speedometer_x
-hud_speedometer_y
-hud_speedometer_red
-hud_speedometer_green
-hud_speedometer_blue
-hud_speedometer_texture_width
-hud_speedometer_texture_height
-hud_speedometer_texture_type
+| CVar                               | Default | Disable | Enable          | Description                                    |
+| :--------------------------------- | :-----: | :-: | :----------: | :--------------------------------------------- |
+| hud_winimage                      | 1       | 0   | 1            | Show the win image. |
+| hud_speedometer                  | 1       | 0   | 1            | Draw your speed value ( 1 Console String 2 HUD 3 Nexon's floatingdamage tga ) |
+| hud_scoreboard                          | 1     | 0 | 1            | Draw Topscoreboard ( 1 CSO old, 2 CSO new ). |
+| hud_killfx                        | 1   | 0   | 1     |  Shows an image when kill the user ( 1 CSO old, 2 CSO new, 3 Crossfire |
+| hud_killicon_display_time                  | 1.5       | 0 | 0               | Kill icon display time for CSO old killfx |
+| hud_killeffect_display_time                       | 3       | 0  | 0             | Kill effect display time for CSO new and Crossfire killfx |
+| hud_crossfire_killmark_type               | 1       |    | 1            | Draw different kill marks (MaxValue: 40)  |
+| hud_speedometer_x            | 0       |    |             | Draw speedometer X Coord. |
+| hud_speedometer_y                        | 300        |    |             | Draw speedometer Y Coord. |
+| hud_speedometer_red               | 255      |    |             | Draw Speedometer Red color |
+| hud_speedometer_green             | 255       |    |             | Draw Speedomter Green Color |
+| hud_speedometer_blue           | 255       |    |             | Draw Speedometer Blue Color |
+| hud_speedometer_texture_width                   | 25       | 0   | 1            | Draw Speedometer Texture Width |
+| hud_speedometer_texture_height               | 25       | 0   | 1            | Draw Speedometer Texture Height |
+| hud_speedometer_texture_type                  | 1       | 0   | 1            | Draw different Speedometer textures (MaxValue:37) |
+| cl_crosshair                   | 0       | 0   | 1            | Draw crosshairs ( 1 Cso, 2 CS2)  |
+| cl_cso_crosshair_type                   | 1       | 0   | 1            | Draw different crosshair styles from CSO |
+| cl_cs2_crosshair_type                      | 1       | 0   | 1            | to activate different crosshair styles. The values are: 0 for the default dynamic style, 1 for a static default crosshair, 2 for a classic static crosshair with dynamic dots, 3 for classic dynamic, 4 for classic static, and 5 for a mix of static and dynamic styles of the classic crosshair. |
+| cl_cs2_crosshairthickness                      | 0.5       |    |             |  crosshair thickness. The range of values is from -2 to 2. |
+| cl_cs2_crosshair_drawoutline                        | 1       | 0   | 1            | a black outline appears around the crosshair, making it more notable on the screen. |
+| cl_cs2_crosshair_outlinethickness                       | 0.1       | 0   | 1            | change how thick the outline around your CS2 crosshair is. 1 is the default value here, and the possible range is from 0.1 to 3. |
+| cl_cs2_crosshairalpha                    | 200       | 0   | 1            | change the transparency of your crosshair. The default value is 200, and the possible range is from 10 |
+| cl_cs2_crosshairusealpha                    | 1       | 0   | 1            | Use the alpha of crosshair |
+| cl_cs2_crosshairdot                    | 1       | 0   | 1            | Draw a dot on crosshair |
+| cl_cs2_crosshairgap                   | 1       | 0   | 1            | this command changes the gap size in the middle of the crosshair. The default value is 1, and the possible range is from -10 to 10. cl_fixedcrosshairgap 3 is an alternative command with the same range of values; use it with a fixed crosshair style. |
+| cl_cs2_crosshair_t                    | 1       | 0   | 1            | activate a T style of crosshair |
+| cl_cs2_crosshair_red                    | 255       | 0   | 1            | Draw Crosshair Red color |
+| cl_cs2_crosshair_green                    | 255       | 0   | 1            | Draw Crosshair Green color |
+| cl_cs2_crosshair_blue                   | 255       | 0   | 1            | Draw Crosshair Blue Color |
 
-//Crosshair Commands
-cl_crosshair // 1 CSO (Counter Strike Online) 2 CS2 (Counter Strike 2)
-cl_cs2_crosshair_type 
-cl_cso_crosshair_type
-cl_cs2_crosshairthickness
-cl_cs2_crosshair_drawoutline
-cl_cs2_crosshair_outlinethickness
-cl_cs2_crosshairalpha
-cl_cs2_crosshairusealpha
-cl_cs2_crosshairdot
-cl_cs2_crosshairgap
-cl_cs2_crosshair_t
-cl_cs2_crosshair_red
-cl_cs2_crosshair_green
-cl_cs2_crosshair_blue
-
-```
+</details>
