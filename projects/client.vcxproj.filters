@@ -378,6 +378,9 @@
     <ClCompile Include="..\cl_dll\hud\hud_speedometer.cpp">
       <Filter>src\hud</Filter>
     </ClCompile>
+    <ClCompile Include="..\cl_dll\hud\scenario.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\cl_dll\include\camera.h">

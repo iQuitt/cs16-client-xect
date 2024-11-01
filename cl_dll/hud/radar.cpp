@@ -32,6 +32,7 @@ version.
 #include "parsemsg.h"
 #include "draw_util.h"
 #include "triangleapi.h"
+#include "vgui_parser.h"
 #ifndef M_PI
 #define M_PI		3.14159265358979323846	// matches value in gcc v2 math.h
 #endif
@@ -44,6 +45,8 @@ DECLARE_MESSAGE( m_Radar, HostageK )
 DECLARE_MESSAGE( m_Radar, HostagePos )
 DECLARE_MESSAGE( m_Radar, BombDrop )
 DECLARE_MESSAGE( m_Radar, BombPickup )
+DECLARE_MESSAGE( m_Radar, Location)
+
 
 
 
@@ -96,6 +99,7 @@ int CHudRadar::Init()
 	HOOK_MESSAGE( HostagePos );
 	HOOK_MESSAGE( BombDrop );
 	HOOK_MESSAGE( BombPickup );
+	HOOK_MESSAGE( Location );
 
 	m_iFlags = HUD_DRAW;
 
@@ -383,13 +387,25 @@ int CHudRadar::Draw(float flTime)
 			}
 		}
 	}
+	// idfc czero
+	DrawPlayerLocation( ( m_hRadarOpaque.rect.Height( ) ) + 10 );
+
 
 	return 0;
 }
 
-void CHudRadar::DrawPlayerLocation()
+void CHudRadar::DrawPlayerLocation( int y)
 {
-	DrawUtils::DrawConsoleString( 30, 30, g_PlayerExtraInfo[gHUD.m_Scoreboard.m_iPlayerNum].location );
+	const char *szLocation = g_PlayerExtraInfo[gHUD.m_Scoreboard.m_iPlayerNum].location;
+	if ( szLocation[0] )
+	{
+		int x   = ( m_hRadarOpaque.rect.Width( ) ) / 2;
+		int len = DrawUtils::ConsoleStringLen( szLocation );
+
+		x = x - len / 2;
+
+		DrawUtils::DrawConsoleString( x, y, szLocation );
+	}
 }
 
 inline void CHudRadar::DrawColoredTexture( int x, int y, int size, byte r, byte g, byte b, byte a, int texHandle )
@@ -560,4 +576,23 @@ int CHudRadar::MsgFunc_HostageK(const char *pszName, int iSize, void *pbuf)
 	}
 
 	return 1;
+}
+
+
+
+int CHudRadar::MsgFunc_Location( const char *pszName, int iSize, void *pbuf )
+{
+	BufferReader reader( pszName, pbuf, iSize );
+
+	int player = reader.ReadByte( );
+	if ( player <= MAX_PLAYERS )
+	{
+		const char *location = reader.ReadString( );
+
+		strncpy( g_PlayerExtraInfo[player].location, location, sizeof( g_PlayerExtraInfo[player].location ) );
+		g_PlayerExtraInfo[player].location[31] = 0;
+		gEngfuncs.Con_Printf( "MsgFunc_Location:^2player %d , location :%s", player, location );	
+	}
+	return 0;
+
 }

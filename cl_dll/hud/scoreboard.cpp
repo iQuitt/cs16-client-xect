@@ -361,11 +361,7 @@ int CHudScoreboard ::DrawTeams( float list_slot )
 
 		if ( g_PlayerExtraInfo[i].teamname[0] == 0 )
 			continue; // skip over players who are not in a team
-		if (gHUD.m_CHudCFMarks.iTeam == TEAM_SPECTATOR)
-		{
-			GetPlayerWeaponModel( i );
-		}
-		else if ( g_PlayerExtraInfo[i].teamnumber == gHUD.m_CHudCFMarks.iTeam )
+		if ( g_PlayerExtraInfo[i].teamnumber == gHUD.m_CHudCFMarks.iTeam )
 		{
 			GetPlayerWeaponModel( i );
 		}	

@@ -246,6 +246,7 @@ void CHud :: Init( void )
 	m_WinImage.Init( );
 	m_SpeedoMeter.Init( );
 	m_AnnouncerIcon.Init( );
+	m_Scenario.Init( );
 
 
 		
@@ -402,6 +403,7 @@ void CHud :: VidInit( void )
 		return;
 	}
 
+	m_iFontWidth   = GetSpriteRect( m_HUD_number_0 ).right - GetSpriteRect( m_HUD_number_0 ).left;
 	m_iFontHeight = GetSpriteRect(m_HUD_number_0).bottom - GetSpriteRect(m_HUD_number_0).top;
 
 	m_hGasPuff = SPR_Load("sprites/gas_puff_01.spr");

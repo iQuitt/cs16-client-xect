@@ -19,7 +19,6 @@
 #include "studio_event.h" // def. of mstudioevent_t
 #include "r_efx.h"
 #include "event_api.h"
-
 extern vec3_t v_origin;
 
 int iOnTrain[MAX_PLAYERS];
@@ -219,7 +218,6 @@ Gives us a chance to add additional entities to the render this frame
 void DLLEXPORT HUD_CreateEntities( void )
 {
 	// Add in any game specific objects
-
 	//GetClientVoiceMgr()->CreateEntities();
 }
 

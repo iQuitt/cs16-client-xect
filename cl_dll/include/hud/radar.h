@@ -28,12 +28,14 @@ public:
 	int MsgFunc_BombPickup(const char *pszName, int iSize, void *pbuf);
 	int MsgFunc_HostagePos(const char *pszName, int iSize, void *pbuf);
 	int MsgFunc_HostageK(const char *pszName, int iSize, void *pbuf);
-private:
+	int MsgFunc_Location( const char *pszName, int iSize, void *pbuf );
+
+  private:
 
 	cvar_t *cl_radartype;
 
 	int InitBuiltinTextures();
-	void DrawPlayerLocation();
+	void DrawPlayerLocation(int y);
 	void DrawRadarDot(int x, int y, int r, int g, int b, int a);
 	void DrawCross(int x, int y, int r, int g, int b, int a );
 

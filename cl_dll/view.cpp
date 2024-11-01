@@ -417,13 +417,14 @@ void V_CalcViewRoll ( struct ref_params_s *pparams )
 	// Because zombie plague does not increase the health data from clientdata above 511, so it does not give us our real HP. This is due to a part in the source code. its has been found yet that causes this problem.
 	// If our fake health data in clientdata is 0, our camera tilts because of the code below.
 	// 
-	//if ( pparams->health <= 0 && ( pparams->viewheight[2] != 0 ) )
-	//{
-	//	// only roll the view if the player is dead and the viewheight[2] is nonzero
-	//	// this is so deadcam in multiplayer will work.
-	//	pparams->viewangles[ROLL] = 80;	// dead view angle
-	//	return;
-	//}
+	if ( pparams->health <= 0 && ( pparams->viewheight[2] != 0 ) )
+	{
+		// only roll the view if the player is dead and the viewheight[2] is nonzero
+		// this is so deadcam in multiplayer will work.
+		//pparams->viewangles[ROLL] = 80;	// dead view angle
+		pparams->health = 1;
+		return;
+	}
 }
 
 

@@ -247,6 +247,7 @@ private:
 
 #include "health.h"
 #include "radar.h"
+#include <com_model.h>
 
 #define FADE_TIME 100
 
@@ -731,6 +732,18 @@ class TextureManager
 #pragma once
 #endif
 
+class CLegView
+{
+	cl_entity_t *m_pLegEntity;
+	int m_playerIndex;
+	bool m_isActive;
+	model_t *m_pModel;
+	int Init( void );
+	int VidInit( void );
+	int Draw( float flTime );
+	void Reset( void );
+	void Update( void );
+};
 #ifndef MAX_HOSTAGES
 #define MAX_HOSTAGES 24
 #endif
@@ -2861,6 +2874,29 @@ class CHudWinImage : public CHudBase
 //
 
 
+
+class CHudScenario : public CHudBase
+{
+public:
+	int Init( );
+	int VidInit( );
+	int Draw( float flTime );
+	void Reset( );
+
+public:
+	int MsgFunc_Scenario( const char *pszName, int iSize, void *buf );
+
+public:
+	CClientSprite m_sprite;
+	int m_iAlpha;
+	int m_iFlashAlpha;
+	float m_fFlashRate;
+	float m_fNextFlash;
+	cvar_t *test_scenario_cvar;
+};
+
+
+
 class CHudSpeedometer : public CHudBase
 {
 	cvar_t *hud_speedometer;
@@ -2906,6 +2942,7 @@ public:
 	// show the timer
 	// [empty]
 	CHudMsgFunc(ShowTimer);
+	int m_right;
 	int m_HUD_timer;
 	int m_iTime;
 	float m_fStartTime;
@@ -2957,6 +2994,8 @@ private:
 	float left, right, centerx, centery;
 	int m_iScopeArc[4];
 };
+
+
 
 //
 //-----------------------------------------------------
@@ -3093,7 +3132,8 @@ public:
 		return m_bIsCZero;
 	}
 
-	int m_iFontHeight;
+	int m_iFontHeight, m_iFontWidth;
+
 	int DrawHudNumber( int x, int y, int iFlags, int iNumber, int r, int g, int b );
 	int DrawHudNumber( int x, int y, int iNumber, int r, int g, int b );
 	int DrawHudNumberCentered( int x, int y, int iNumber, int r, int g, int b );
@@ -3180,6 +3220,7 @@ public:
 	CHudAnnouncerIcon m_AnnouncerIcon;
 	CHudCFMarks m_CHudCFMarks;
 	TextureManager m_TextureManager;
+	CHudScenario m_Scenario;
 	// user messages
 	CHudMsgFunc(Damage);
 	CHudMsgFunc(GameMode);
