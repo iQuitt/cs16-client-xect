@@ -57,8 +57,6 @@ void CHudScenario::Reset( )
 int CHudScenario::Draw( float flTime )
 {
 
-	gEngfuncs.Con_Printf( "draw" );
-
 	int r, g, b;
 	int width = m_sprite.rect.right - m_sprite.rect.left;
 	int x, y;

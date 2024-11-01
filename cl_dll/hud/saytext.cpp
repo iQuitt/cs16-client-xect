@@ -250,186 +250,186 @@ struct
           true,
           true } };
 
-//int CHudSayText :: MsgFunc_SayText( const char *pszName, int iSize, void *pbuf )
-//{
-//	BufferReader reader( pszName, pbuf, iSize );
-//	char szBuf[3][64] = { 0 };
-//
-//	int client_index = reader.ReadByte();		// the client who spoke the message
-//	strncpy( szBuf[0], reader.ReadString(), sizeof(szBuf[0]));
-//	strncpy( szBuf[1], reader.ReadString(), sizeof(szBuf[1]));
-//	strncpy( szBuf[2], reader.ReadString(), sizeof(szBuf[2]));
-//
-//	const char *fmt =  "\x02%s";
-//	int i = 0;
-//	for( i = CHAT_CT; i < CHAT_NAME_CHANGE; i++ )
-//	{
-//		if( !strncmp( szBuf[0], sayTextFmt[i].key, sizeof( szBuf ) ) )
-//		{
-//			fmt = sayTextFmt[i].value;
-//			break;
-//		}
-//	}
-//
-//
-//#if 1
-//	// If text is sent from dead player or spectator
-//	// don't draw it, until local player isn't specator or dead.
-//	switch( i )
-//	{
-//	case CHAT_CT_DEAD:
-//	case CHAT_T_DEAD:
-//	case CHAT_ALLDEAD:
-//	case CHAT_ALLSPEC:
-//	case CHAT_SPEC:
-//		if( !CL_IsDead() && !g_iUser1 )
-//			return 1;
-//	}
-//#endif
-//
-//	char dst[256];
-//	if( i == CHAT_NAME_CHANGE )
-//	{
-//		_snprintf(dst, sizeof(dst), fmt, szBuf[1], szBuf[2]);
-//	}
-//	else if( szBuf[1][0] == '\0' && szBuf[2][0] == '\0' )
-//	{
-//		_snprintf(dst, sizeof(dst), fmt, szBuf[0]);
-//	}
-//	else
-//	{
-//		GetPlayerInfo( client_index, &g_PlayerInfoList[client_index] );
-//		const char *pName = g_PlayerInfoList[client_index].name;
-//		_snprintf( dst, sizeof(dst), fmt, pName, szBuf[2] );
-//	}
-//	SayTextPrint( dst, strlen(dst),  client_index );
-//	
-//	return 1;
-//}
-
-
-
-
-
-int CHudSayText ::MsgFunc_SayText( const char *pszName, int iSize, void *pbuf )
+int CHudSayText :: MsgFunc_SayText( const char *pszName, int iSize, void *pbuf )
 {
 	BufferReader reader( pszName, pbuf, iSize );
-	int i = CHAT_LAST, client_index, argc, numArgs; // the client who spoke the message
-	char *arg, *fmt, *argv[3] = { };
-	const char *fmt_tran;
-	bool allowDead, replaceFirstArgToName, swap;
-	int len;
+	char szBuf[3][64] = { 0 };
 
-	client_index = reader.ReadByte( );
+	int client_index = reader.ReadByte();		// the client who spoke the message
+	strncpy( szBuf[0], reader.ReadString(), sizeof(szBuf[0]));
+	strncpy( szBuf[1], reader.ReadString(), sizeof(szBuf[1]));
+	strncpy( szBuf[2], reader.ReadString(), sizeof(szBuf[2]));
 
-	// find all arguments
-	arg = reader.ReadString( );
-	len = strlen( arg );
-	fmt = new char[len + 1];
-	strcpy( fmt, arg );
-
-	for ( argc = 0; argc < 3; argc++ )
+	const char *fmt =  "\x02%s";
+	int i = 0;
+	for( i = CHAT_CT; i < CHAT_NAME_CHANGE; i++ )
 	{
-		arg = reader.ReadString( );
-		if ( !arg[0] /*&& !reader.Valid( )*/ )
-			break;
-
-		len        = strlen( arg );
-		argv[argc] = new char[len + 1];
-		strncpy( argv[argc], arg, len );
-		argv[argc][len] = 0;
-	}
-
-	// see if argv[0] is translatable
-	if ( fmt[0] == '#' )
-	{
-		for ( i = CHAT_CT; i < CHAT_LAST; i++ )
+		if( !strncmp( szBuf[0], sayTextFmt[i].key, sizeof( szBuf ) ) )
 		{
-			if ( !strcmp( fmt, sayTextFmt[i].key ) )
-			{
-				fmt_tran  = (char *)sayTextFmt[i].value;
-				allowDead = sayTextFmt[i].allowDead;
-				numArgs   = sayTextFmt[i].numArgs;
-
-				// VALVEWHY: Second argument may be null string, but not on name changing.
-				replaceFirstArgToName = sayTextFmt[i].replaceFirstArgToName;
-
-				// VALVEWHY #2: location is last argument, so swap
-				swap = sayTextFmt[i].swap;
-				break;
-			}
+			fmt = sayTextFmt[i].value;
+			break;
 		}
 	}
 
-	// no translations
-	if ( i == CHAT_LAST )
-	{
-		fmt_tran              = fmt;
-		numArgs               = argc;
-		allowDead             = true;
-		replaceFirstArgToName = false;
-		swap                  = false;
-	}
 
+#if 1
 	// If text is sent from dead player or spectator
 	// don't draw it, until local player isn't specator or dead.
-	if ( !allowDead && !CL_IsDead( ) && !g_iUser1 )
+	switch( i )
 	{
-		delete[] fmt;
-
-		for ( int i = 0; i < 3; i++ )
-			if ( argv[i] )
-				delete argv[i];
-
-		return 1;
+	case CHAT_CT_DEAD:
+	case CHAT_T_DEAD:
+	case CHAT_ALLDEAD:
+	case CHAT_ALLSPEC:
+	case CHAT_SPEC:
+		if( !CL_IsDead() && !g_iUser1 )
+			return 1;
 	}
+#endif
 
-	if ( replaceFirstArgToName )
+	char dst[256];
+	if( i == CHAT_NAME_CHANGE )
+	{
+		_snprintf(dst, sizeof(dst), fmt, szBuf[1], szBuf[2]);
+	}
+	else if( szBuf[1][0] == '\0' && szBuf[2][0] == '\0' )
+	{
+		_snprintf(dst, sizeof(dst), fmt, szBuf[0]);
+	}
+	else
 	{
 		GetPlayerInfo( client_index, &g_PlayerInfoList[client_index] );
-		delete[] argv[0];
-
-		argv[0] = g_PlayerInfoList[client_index].name;
+		const char *pName = g_PlayerInfoList[client_index].name;
+		_snprintf( dst, sizeof(dst), fmt, pName, szBuf[2] );
 	}
-
-	char dst[1024];
-
-	switch ( numArgs )
-	{
-	case 3:
-		if ( swap )
-			snprintf( dst, sizeof( dst ), fmt_tran, argv[0], argv[2], argv[1] );
-		else
-			snprintf( dst, sizeof( dst ), fmt_tran, argv[0], argv[1], argv[2] );
-		break;
-	case 2:
-		snprintf( dst, sizeof( dst ), fmt_tran, argv[0], argv[1] );
-		break;
-	case 1:
-		snprintf( dst, sizeof( dst ), fmt_tran, argv[0] );
-		break;
-	case 0:
-		strncpy( dst, fmt_tran, sizeof( dst ) );
-		dst[sizeof( dst ) - 1] = 0;
-		break;
-	}
-
-	SayTextPrint( dst, strlen( dst ), client_index );
-
-	delete[] fmt;
-
-	for ( int i = 0; i < argc; i++ )
-	{
-		// skip second argument if it was replaced by name
-		if ( i == 0 && replaceFirstArgToName )
-			continue;
-
-		if ( argv[i] )
-			delete[] argv[i];
-	}
-
+	SayTextPrint( dst, strlen(dst),  client_index );
+	
 	return 1;
 }
+
+
+
+//
+//
+//int CHudSayText ::MsgFunc_SayText( const char *pszName, int iSize, void *pbuf )
+//{
+//	BufferReader reader( pszName, pbuf, iSize );
+//	int i = CHAT_LAST, client_index, argc, numArgs; // the client who spoke the message
+//	char *arg, *fmt, *argv[3] = { };
+//	const char *fmt_tran;
+//	bool allowDead, replaceFirstArgToName, swap;
+//	int len;
+//
+//	client_index = reader.ReadByte( );
+//
+//	// find all arguments
+//	arg = reader.ReadString( );
+//	len = strlen( arg );
+//	fmt = new char[len + 1];
+//	strcpy( fmt, arg );
+//
+//	for ( argc = 0; argc < 3; argc++ )
+//	{
+//		arg = reader.ReadString( );
+//		if ( !arg[0] /*&& !reader.Valid( )*/ )
+//			break;
+//
+//		len        = strlen( arg );
+//		argv[argc] = new char[len + 1];
+//		strncpy( argv[argc], arg, len );
+//		argv[argc][len] = 0;
+//	}
+//
+//	// see if argv[0] is translatable
+//	if ( fmt[0] == '#' )
+//	{
+//		for ( i = CHAT_CT; i < CHAT_LAST; i++ )
+//		{
+//			if ( !strcmp( fmt, sayTextFmt[i].key ) )
+//			{
+//				fmt_tran  = (char *)sayTextFmt[i].value;
+//				allowDead = sayTextFmt[i].allowDead;
+//				numArgs   = sayTextFmt[i].numArgs;
+//
+//				// VALVEWHY: Second argument may be null string, but not on name changing.
+//				replaceFirstArgToName = sayTextFmt[i].replaceFirstArgToName;
+//
+//				// VALVEWHY #2: location is last argument, so swap
+//				swap = sayTextFmt[i].swap;
+//				break;
+//			}
+//		}
+//	}
+//
+//	// no translations
+//	if ( i == CHAT_LAST )
+//	{
+//		fmt_tran              = fmt;
+//		numArgs               = argc;
+//		allowDead             = true;
+//		replaceFirstArgToName = false;
+//		swap                  = false;
+//	}
+//
+//	// If text is sent from dead player or spectator
+//	// don't draw it, until local player isn't specator or dead.
+//	if ( !allowDead && !CL_IsDead( ) && !g_iUser1 )
+//	{
+//		delete[] fmt;
+//
+//		for ( int i = 0; i < 3; i++ )
+//			if ( argv[i] )
+//				delete argv[i];
+//
+//		return 1;
+//	}
+//
+//	if ( replaceFirstArgToName )
+//	{
+//		GetPlayerInfo( client_index, &g_PlayerInfoList[client_index] );
+//		delete[] argv[0];
+//
+//		argv[0] = g_PlayerInfoList[client_index].name;
+//	}
+//
+//	char dst[1024];
+//
+//	switch ( numArgs )
+//	{
+//	case 3:
+//		if ( swap )
+//			snprintf( dst, sizeof( dst ), fmt_tran, argv[0], argv[2], argv[1] );
+//		else
+//			snprintf( dst, sizeof( dst ), fmt_tran, argv[0], argv[1], argv[2] );
+//		break;
+//	case 2:
+//		snprintf( dst, sizeof( dst ), fmt_tran, argv[0], argv[1] );
+//		break;
+//	case 1:
+//		snprintf( dst, sizeof( dst ), fmt_tran, argv[0] );
+//		break;
+//	case 0:
+//		strncpy( dst, fmt_tran, sizeof( dst ) );
+//		dst[sizeof( dst ) - 1] = 0;
+//		break;
+//	}
+//
+//	SayTextPrint( dst, strlen( dst ), client_index );
+//
+//	delete[] fmt;
+//
+//	for ( int i = 0; i < argc; i++ )
+//	{
+//		// skip second argument if it was replaced by name
+//		if ( i == 0 && replaceFirstArgToName )
+//			continue;
+//
+//		if ( argv[i] )
+//			delete[] argv[i];
+//	}
+//
+//	return 1;
+//}
 
 void CHudSayText :: SayTextPrint( const char *pszBuf, int iBufSize, int clientIndex )
 {

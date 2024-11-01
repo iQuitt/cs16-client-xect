@@ -596,7 +596,6 @@ int CHudScoreboard :: DrawPlayers( float list_slot, int nameoffset, const char *
 
 		DrawUtils::DrawHudString( NAME_POS_START() + nameoffset, ypos, NAME_POS_END(), pl_info->name, r, g, b );
 
-		// draw bomb( if player have the bomb )
 		if( g_PlayerExtraInfo[best_player].dead )
 			DrawUtils::DrawHudString( ATTRIB_POS_START(), ypos, ATTRIB_POS_END(), "Dead", r, g, b );
 		else if( g_PlayerExtraInfo[best_player].has_c4 )
