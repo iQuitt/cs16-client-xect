@@ -1,0 +1,159 @@
+name: Build
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  android:
+    name: Android
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      - name: Fetch YaPB Graphs from DB
+        run: scripts/yapb_graph_dl.sh
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+          cache: gradle
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Build
+        run: ./gradlew assembleDebug
+      - name: Sign APK
+        uses: r0adkll/sign-android-release@v1
+        with:
+          releaseDirectory: app/build/outputs/apk/debug
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+        env:
+          BUILD_TOOLS_VERSION: "34.0.0"
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Android
+          path: app/build/outputs/apk/debug/app-debug-signed.apk
+  # psvita:
+  #   name: PS Vita
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout sources
+  #       uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
+  #         submodules: recursive
+  #     - name: Setup PS Vita SDK
+  #       run: scripts/psvita_sdk.sh
+  windows:
+    name: Windows
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        arch: ['x86', 'amd64']
+      fail-fast: false
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      - name: Setup Visual Studio
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch }}
+      - name: Configure project
+        run: cmake --preset "win32-release-${{ matrix.arch }}"
+      - name: Run appversion.sh
+        run: regamedll/version/appversion.sh "${{ github.workspace }}/3rdparty/ReGameDLL_CS"
+        shell: bash
+        working-directory: 3rdparty/ReGameDLL_CS
+      - name: Build
+        run: cmake --build .
+        working-directory: build
+      - name: Package
+        run: cpack --config CPackConfig.cmake
+        working-directory: build
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ runner.os }}-${{ matrix.arch }}
+          path: build/*.zip
+  linux:
+    name: Linux
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: ['i386', 'amd64']
+      fail-fast: false
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      - name: Install dependencies
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install libatomic1:i386 libgcc-s1:i386 \
+            libstdc++6:i386 gcc-multilib g++-multilib cmake \
+            ninja-build libfontconfig-dev:i386 libfontconfig-dev
+      - name: Configure project
+        run: cmake --preset "linux-release-${{ matrix.arch }}"
+      - name: Build
+        run: cmake --build .
+        working-directory: build
+      - name: Package
+        run: cpack --config CPackConfig.cmake
+        working-directory: build
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ runner.os }}-${{ matrix.arch }}
+          path: build/*.tar.gz
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: [android, windows, linux]
+    steps:
+      - name: Fetch artifacts
+        uses: actions/download-artifact@v4
+      - name: Remove old release
+        uses: ClementTsang/delete-tag-and-release@v0.3.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: continuous
+          delete_release: true
+          repo: ${{ env.GITHUB_REPOSITORY }}
+      - name: Prepare release
+        run: |
+          mv Android/app-debug-signed.apk CS16Client-Android.apk
+
+          mv */*.zip .
+          mv */*.tar.gz .
+
+          sleep 60s
+      - name: Purge artifacts
+        uses: geekyeggo/delete-artifact@v2
+        with:
+          name: "*"
+      - name: Upload new release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_name: ${{ env.GITHUB_REPOSITORY }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file_glob: true
+          file: CS16Client-*
+          tag: continuous
+          overwrite: true
+          prerelease: true
+          release_name: CS16Client development build
