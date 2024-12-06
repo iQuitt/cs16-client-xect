@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\cl_dll\calcscreen.cpp" />
     <ClCompile Include="..\cl_dll\cdll_int.cpp" />
     <ClCompile Include="..\cl_dll\cs_wpn\com_weapons.cpp" />
     <ClCompile Include="..\cl_dll\cs_wpn\cs_baseentity.cpp" />
@@ -130,6 +131,7 @@
     <ClCompile Include="..\pm_shared\pm_shared.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\cl_dll\include\calcscreen.h" />
     <ClInclude Include="..\cl_dll\include\camera.h" />
     <ClInclude Include="..\cl_dll\include\cl_dll.h" />
     <ClInclude Include="..\cl_dll\include\cl_util.h" />

@@ -220,11 +220,12 @@ int CHudDeathNotice :: VidInit( void )
 				textureVector[i] = gRenderAPI.GL_LoadTexture( pathVector[i].c_str( ), NULL, 0, TF_NEAREST | TF_NOPICMIP | TF_NOMIPMAP | TF_CLAMP );
 				if ( textureVector[i] == 0 )
 				{
-					gEngfuncs.Con_Printf( "^9ERROR: ^7Failed to load texture: %s\n", pathVector[i].c_str( ) );
+					gEngfuncs.Con_Printf( "^9CHudDeathNotice_VidInit : ^7Failed to load texture: %s\n", pathVector[i].c_str( ) );
 				}
 			}
 		}
 	};
+
 
 	// Load new CSO killfx textures
 	loadTextures( gHUD.m_AnnouncerIcon.announceTextures,

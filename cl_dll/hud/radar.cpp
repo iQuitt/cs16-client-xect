@@ -591,7 +591,6 @@ int CHudRadar::MsgFunc_Location( const char *pszName, int iSize, void *pbuf )
 
 		strncpy( g_PlayerExtraInfo[player].location, location, sizeof( g_PlayerExtraInfo[player].location ) );
 		g_PlayerExtraInfo[player].location[31] = 0;
-		gEngfuncs.Con_Printf( "MsgFunc_Location:^2player %d , location :%s", player, location );	
 	}
 	return 0;
 

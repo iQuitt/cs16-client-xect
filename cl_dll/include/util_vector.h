@@ -95,7 +95,13 @@ public:
 		if( flLen == 0.0f ) return Vector( 0, 0, 1 ); // ????
 		return Vector(x * flLen, y * flLen, z * flLen);
 	}
-
+	Vector( const float rgfl[3] )
+	    : x( 0.0 ), y( 0.0 ), z( 0.0 )
+	{
+		x = rgfl[0];
+		y = rgfl[1];
+		z = rgfl[2];
+	}
 	inline Vector2D Make2D ( void ) const
 	{
 		Vector2D	Vec2;

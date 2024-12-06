@@ -385,7 +385,6 @@ void CAM_ToThirdPerson(void)
 		cam_ofs[ 2 ] = CAM_MIN_DIST; 
 	}
 
-	gEngfuncs.Cvar_SetValue( "cam_command", 0 );
 }
 
 void CAM_ToFirstPerson(void) 

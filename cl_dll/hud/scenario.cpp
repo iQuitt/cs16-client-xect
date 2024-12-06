@@ -92,7 +92,5 @@ int CHudScenario::MsgFunc_Scenario( const char *pszName, int iSize, void *buf )
 	m_iAlpha      = MIN_ALPHA;
 	m_fFlashRate  = reader.ReadShort( ) * 0.01;
 	m_fNextFlash  = reader.ReadShort( ) * 0.01 + gHUD.m_flTime;
-
-	gEngfuncs.Con_Printf( "MsgFunc_Scenario: ^5m_iFlags: %d,spritename %s, m_iFlashAlpha, m_iAlpha,m_fFlashrate,m_FNextFlash", m_iFlags, spriteName, m_iFlashAlpha, m_iAlpha, m_fFlashRate, m_fNextFlash );
 	return 1;
 }

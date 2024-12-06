@@ -16,9 +16,6 @@
     <Filter Include="src\events">
       <UniqueIdentifier>{f9759b8f-eb75-4cd4-bf55-f4e5782770a4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\studio">
-      <UniqueIdentifier>{dee46702-17d9-474e-aff7-313fe6316093}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\cs">
       <UniqueIdentifier>{1152c56f-ba6f-4902-bb09-36e4513fefdd}</UniqueIdentifier>
     </Filter>
@@ -27,6 +24,9 @@
     </Filter>
     <Filter Include="inc">
       <UniqueIdentifier>{c28aba62-ad19-4d1d-9df7-79d8069ebb9a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\pm\studio">
+      <UniqueIdentifier>{dee46702-17d9-474e-aff7-313fe6316093}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -127,13 +127,13 @@
       <Filter>src\events</Filter>
     </ClCompile>
     <ClCompile Include="..\cl_dll\studio\GameStudioModelRenderer.cpp">
-      <Filter>src\studio</Filter>
+      <Filter>src\pm\studio</Filter>
     </ClCompile>
     <ClCompile Include="..\cl_dll\studio\studio_util.cpp">
-      <Filter>src\studio</Filter>
+      <Filter>src\pm\studio</Filter>
     </ClCompile>
     <ClCompile Include="..\cl_dll\studio\StudioModelRenderer.cpp">
-      <Filter>src\studio</Filter>
+      <Filter>src\pm\studio</Filter>
     </ClCompile>
     <ClCompile Include="..\cl_dll\cs_wpn\com_weapons.cpp">
       <Filter>src\cs</Filter>
@@ -380,6 +380,9 @@
     </ClCompile>
     <ClCompile Include="..\cl_dll\hud\scenario.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\cl_dll\calcscreen.cpp">
+      <Filter>src\hud</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -663,6 +666,9 @@
       <Filter>inc</Filter>
     </ClInclude>
     <ClInclude Include="..\engine\studio.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\cl_dll\include\calcscreen.h">
       <Filter>inc</Filter>
     </ClInclude>
   </ItemGroup>
