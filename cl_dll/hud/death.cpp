@@ -231,10 +231,15 @@ int CHudDeathNotice :: VidInit( void )
 	              gHUD.m_AnnouncerIcon.texturePaths,
 	              CHudAnnouncerIcon::Alarm_Type::ALARM_LAST );
 
+
+	// 700 kusur texture yuklendigi icin boyle bos bi sorgu koyuyoz xect zombie meate giremeyiz ne yazikki o yuzden bunu ekliyorum
+	if ( gHUD.m_AnnouncerIcon.hud_killfx->value == 3)
+	{
 	// Load Crossfire KillMark textures
 	loadTextures( gHUD.m_CHudCFMarks.markTextures,
 	              gHUD.m_CHudCFMarks.texturePaths,
 	              CHudCFMarks::Marks_Type::CF_MARK_UPGRADE3 );
+	}	
 
 	announcerBackground = gRenderAPI.GL_LoadTexture( "resource/announceribbon/announceicon/alarm_bg.tga", NULL, 0, TF_NEAREST | TF_NOPICMIP | TF_NOMIPMAP | TF_CLAMP );
 	announcerLogobg     = gRenderAPI.GL_LoadTexture( "resource/announceribbon/announceicon/alarm_logobg.tga", NULL, 0, TF_NEAREST | TF_NOPICMIP | TF_NOMIPMAP | TF_CLAMP );
