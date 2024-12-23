@@ -1,0 +1,67 @@
+name: Android Build
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ] 
+  workflow_dispatch:
+jobs:
+  android-build:
+    name: Android Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17' 
+      
+      - name: Install Dependencies
+        run: |
+          sudo apt update
+          sudo apt-get install -y \
+            gcc g++ clang \
+            g++-multilib gcc-multilib \
+            build-essential wget unzip
+      
+      - name: Prepare NDK
+        run: |
+          cd android
+          wget -q https://dl.google.com/android/repository/android-ndk-r21e-linux-x86_64.zip
+          unzip -qq android-ndk-r21e-linux-x86_64.zip
+          rm -rf android-ndk-r21e-linux-x86_64.zip
+      
+      - name: Debug - Show Directory Structure
+        run: |
+          pwd
+          ls -R android
+      
+      - name: Build Project
+        run: |
+          cd $GITHUB_WORKSPACE/android
+          export CFLAGS="-fPIC $CFLAGS"
+          export ANDROID_NDK_HOME=$GITHUB_WORKSPACE/android/android-ndk-r21e
+          export CXXFLAGS="-DAPP_STL=gnustl_static -Wno-macro-redefined -fPIC $CXXFLAGS"
+          export NDK_PROJECT_PATH=$GITHUB_WORKSPACE/android
+          
+          # Ensure ndk-build is executable
+          chmod +x $ANDROID_NDK_HOME/ndk-build
+          
+          # Run ndk-build with proper project path
+          $ANDROID_NDK_HOME/ndk-build -j2 \
+            NDK_TOOLCHAIN_VERSION=4.8 \
+            CS16CLIENT_ENABLE_OPENMP=0 \
+            NDK_DEBUG=0 \
+            V=0
+      
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-libs
+          path: android/libs
