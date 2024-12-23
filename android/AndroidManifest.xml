@@ -3,7 +3,7 @@
       package="in.celest.xash3d.cs16client"
       android:versionCode="406"
       android:versionName="1.35">
-    <uses-sdk android:minSdkVersion="9" android:targetSdkVersion="23"/>
+    <uses-sdk android:minSdkVersion="16" android:targetSdkVersion="23"/>
     <application android:label="@string/app_name"
                  android:debuggable="false"
                  android:icon="@drawable/ic_launcher">
