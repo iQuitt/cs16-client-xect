@@ -53,4 +53,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Android
-          path: libs/
+          path: ${{ github.workspace }}/android/libs/
