@@ -965,8 +965,6 @@ int CHudScoreboard::DrawTopScoreBoard( float flTime )
 	int bgY          = 2;
 	int bgX          = ( ScreenWidth - bgWidth ) / 2;
 
-
-
 	int textWidth_TAlive  = GetHudNumberWidth( m_iNum_S, m_rcNumber_Small, DHN_2DIGITS | DHN_DRAWZERO, m_iTeamAlive_T );
 	int textWidth_CTAlive = GetHudNumberWidth( m_iNum_S, m_rcNumber_Small, DHN_2DIGITS | DHN_DRAWZERO, m_iTeamAlive_CT );
 	int roundNumber       = m_iTeamScore_Max ? m_iTeamScore_Max : m_iTeamScore_T + m_iTeamScore_CT + 1;
@@ -1094,49 +1092,68 @@ int CHudScoreboard::DrawTopScoreBoard( float flTime )
 	}
 	else
 	{
-		DrawUtils::Draw2DQuad2( ScreenWidth * 0.5f - 140, 0, 280, 83, 0.0f, 0.0f, 1.0f, 1.0f, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::HUD_SCOREBOARD_BACKGROUND], 255, 255, 255, 255 );
+		const int BASE_HEIGHT = 768; 
+		float scaleY = (float)ScreenHeight / BASE_HEIGHT;
+		
+		int centerX = ScreenWidth / 2;
+		int bgWidth = 280;
+		int bgHeight = (int)(83 * scaleY);
+		int bgX = centerX - (bgWidth / 2);
+		int bgY = 0;
 
-		DrawNumber( m_iTeamScore_T, 0.465, 0.035, 255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_RED], 80, 22 );
-		DrawNumber( m_iTeamScore_CT, 0.535, 0.035, 255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_BLUE], 80, 22 );
+		DrawUtils::Draw2DQuad2(bgX, bgY, bgWidth, bgHeight, 0.0f, 0.0f, 1.0f, 1.0f, 
+			gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::HUD_SCOREBOARD_BACKGROUND], 255, 255, 255, 255);
 
-		DrawNumber( roundNumber, 0.5, 0.035, 255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_CENTER], 80, 22 );
+		const int SCORE_Y = (int)(33 * scaleY); 
+		const int ALIVE_Y = (int)(64 * scaleY); 
+		const int TIME_Y = ALIVE_Y;
 
-		DrawNumber( m_iTeamAlive_T, 0.465, 0.065, 255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_SMALL_RED], 80, 11 );
-		DrawNumber( m_iTeamAlive_CT, 0.535, 0.065, 255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_SMALL_BLUE], 80, 11 );
+		DrawNumber(m_iTeamScore_T, (float)(centerX - 70) / ScreenWidth, (float)SCORE_Y / ScreenHeight, 
+			255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_RED], 80, 22);
+
+		DrawNumber(m_iTeamScore_CT, (float)(centerX + 70) / ScreenWidth, (float)SCORE_Y / ScreenHeight,
+			255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_BLUE], 80, 22);
+
+		DrawNumber(roundNumber, 0.5f, (float)SCORE_Y / ScreenHeight,
+			255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_CENTER], 80, 22);
+
+		DrawNumber(m_iTeamAlive_T, (float)(centerX - 70) / ScreenWidth, (float)ALIVE_Y / ScreenHeight,
+			255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_SMALL_RED], 80, 11);
+
+		DrawNumber(m_iTeamAlive_CT, (float)(centerX + 70) / ScreenWidth, (float)ALIVE_Y / ScreenHeight,
+			255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_SMALL_BLUE], 80, 11);
 
 		int minutes = (int)(gHUD.m_Timer.m_iTime + gHUD.m_Timer.m_fStartTime - gHUD.m_flTime) / 60;
 		if (minutes < 0) minutes = 0;
 		
 		int seconds = (int)(gHUD.m_Timer.m_iTime + gHUD.m_Timer.m_fStartTime - gHUD.m_flTime) - (minutes * 60);
 		if (seconds < 0) seconds = 0;
+
 		int r = 255, g = 255, b = 255;
-		if ( minutes * 60 + seconds > 20 )
+		if (minutes * 60 + seconds > 20)
 		{
-			r = 255;
-			g = 255;
-			b = 255;
+			r = g = b = 255;
 		}
 		else
 		{
 			gHUD.m_Timer.m_flPanicTime += gHUD.m_flTimeDelta;
-			// add 0.1 sec, so it's not flicker fast
-			if ( gHUD.m_Timer.m_flPanicTime > ( (float)seconds / 40.0f ) + 0.1f )
+			if (gHUD.m_Timer.m_flPanicTime > ((float)seconds / 40.0f) + 0.1f)
 			{
 				gHUD.m_Timer.m_flPanicTime = 0;
 				gHUD.m_Timer.m_bPanicColorChange = !gHUD.m_Timer.m_bPanicColorChange;
 			}
-			if ( gHUD.m_Timer.m_bPanicColorChange )
+			if (gHUD.m_Timer.m_bPanicColorChange)
 			{
 				r = 255;
-				g = 0;
-				b = 0;
+				g = b = 0;
 			}
 		}
 
-		DrawNumber( minutes, 0.49, 0.065, r, g, b, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_WHITE_BOTTOM], 80, 12 );
-		DrawNumber( seconds, 0.508, 0.065, r, g, b, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_WHITE_BOTTOM], 80, 12 );
+		DrawNumber(minutes, (float)(centerX - 20) / ScreenWidth, (float)TIME_Y / ScreenHeight,
+			r, g, b, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_WHITE_BOTTOM], 80, 12);
+		DrawNumber(seconds, (float)(centerX + 20) / ScreenWidth, (float)TIME_Y / ScreenHeight,
+			r, g, b, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_WHITE_BOTTOM], 80, 12);
 	}
-
 
 	return 1;
 }

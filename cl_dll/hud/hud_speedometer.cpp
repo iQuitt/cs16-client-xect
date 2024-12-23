@@ -30,8 +30,8 @@ int CHudSpeedometer::Init( )
 	m_iFlags |= HUD_DRAW;
 
 	hud_speedometer                = gEngfuncs.pfnRegisterVariable( "hud_speedometer", "0", FCVAR_ARCHIVE );
-	hud_speedometer_x              = gEngfuncs.pfnRegisterVariable( "hud_speedometer_x", "0", FCVAR_ARCHIVE );
-	hud_speedometer_y              = gEngfuncs.pfnRegisterVariable( "hud_speedometer_y", "300", FCVAR_ARCHIVE );
+	hud_speedometer_x              = gEngfuncs.pfnRegisterVariable( "hud_speedometer_x", "0.5", FCVAR_ARCHIVE );
+	hud_speedometer_y              = gEngfuncs.pfnRegisterVariable( "hud_speedometer_y", "0.8", FCVAR_ARCHIVE );
 	hud_speedometer_red            = gEngfuncs.pfnRegisterVariable( "hud_speedometer_red", "255", FCVAR_ARCHIVE );
 	hud_speedometer_green          = gEngfuncs.pfnRegisterVariable( "hud_speedometer_green", "255", FCVAR_ARCHIVE );
 	hud_speedometer_blue           = gEngfuncs.pfnRegisterVariable( "hud_speedometer_blue", "255", FCVAR_ARCHIVE );
@@ -135,15 +135,15 @@ int CHudSpeedometer::Draw( float time )
 
 	if ( hud_speedometer->value == 1 )
 	{
-		gHUD.DrawStringConsole( ScreenWidth / 2 + hud_speedometer_x->value, ScreenHeight / 2 + hud_speedometer_y->value, hud_speedometer_red->value, hud_speedometer_green->value, hud_speedometer_blue->value, "%d", m_iSpeed );
+		gHUD.DrawStringConsole( hud_speedometer_x->value * ScreenWidth, hud_speedometer_y->value * ScreenHeight, hud_speedometer_red->value, hud_speedometer_green->value, hud_speedometer_blue->value, "%d", m_iSpeed );
 	}
 	else if ( hud_speedometer->value == 2 )
 	{
-		DrawNumber(m_iSpeed,hud_speedometer_x->value, hud_speedometer_y->value, hud_speedometer_red->value,hud_speedometer_green->value,hud_speedometer_blue->value,255, textureID, hud_speedometer_texture_width->value,hud_speedometer_texture_height->value);
+		DrawNumber( m_iSpeed, hud_speedometer_x->value, hud_speedometer_y->value, hud_speedometer_red->value, hud_speedometer_green->value, hud_speedometer_blue->value, 255, textureID, hud_speedometer_texture_width->value, hud_speedometer_texture_height->value );
 	}
 	else
 	{
-		gHUD.DrawHudNumberCentered( ScreenWidth / 2 + hud_speedometer_x->value, ScreenHeight / 2 + hud_speedometer_y->value, m_iSpeed, hud_speedometer_red->value, hud_speedometer_green->value, hud_speedometer_blue->value );
+		gHUD.DrawHudNumberCentered( hud_speedometer_x->value * ScreenWidth, hud_speedometer_y->value * ScreenHeight, m_iSpeed, hud_speedometer_red->value, hud_speedometer_green->value, hud_speedometer_blue->value );
 	}
 
 	return 0;

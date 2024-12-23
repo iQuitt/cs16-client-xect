@@ -178,8 +178,7 @@ void CHudCFMarks::CFupdateAnimation( float deltaTime )
 
 
 
-
-void DrawKillFX( int killfx, int textureID, int width,int height, const char *soundName, float time, bool rowbyrow = false )
+void DrawKillFX( int killfx, int textureID, int width, int height, const char *soundName, float time, bool rowbyrow = false )
 {
 	if ( killfx == 3 && gHUD.m_AnnouncerIcon.hud_killfx->value == 3 && rowbyrow )
 	{
@@ -189,22 +188,20 @@ void DrawKillFX( int killfx, int textureID, int width,int height, const char *so
 		char command[64];
 		snprintf( command, sizeof( command ), "speak \"\%s\"", soundName );
 		gEngfuncs.pfnClientCmd( command );
-
 	}
 	else if ( killfx == 2 && gHUD.m_AnnouncerIcon.hud_killfx->value == 2 )
 	{
-		gHUD.m_AnnouncerIcon.textureManager.AddTexture( textureID, time, width, height );// new cso style draw texture and sound
-		gHUD.m_SoundManager.AddSound( soundName );                       
-
+		gHUD.m_AnnouncerIcon.textureManager.AddTexture( textureID, time, width, height ); // new cso style draw texture and sound
+		gHUD.m_SoundManager.AddSound( soundName );
 	}
-	else if ( killfx == 1 && gHUD.m_AnnouncerIcon.hud_killfx->value == 1)
+	else if ( killfx == 1 && gHUD.m_AnnouncerIcon.hud_killfx->value == 1 )
 	{
-		gHUD.m_SoundManager.AddSound( soundName );// old cso style only sound.
+		gHUD.m_SoundManager.AddSound( soundName ); // old cso style only sound.
 	}
 	gHUD.m_DeathNotice.m_killIconTime   = gHUD.m_flTime + gHUD.m_DeathNotice.hud_killicon_display_time->value;
 	gHUD.m_DeathNotice.m_killEffectTime = gHUD.m_flTime + gHUD.m_DeathNotice.hud_killeffect_display_time->value;
-	
 }
+
 void CHudDeathNotice :: Reset( void )
 {
 	m_killNums       = 0;
@@ -281,8 +278,7 @@ int CHudDeathNotice :: VidInit( void )
 
 int CHudDeathNotice :: Draw( float flTime )
 {
-	int x, y, r, g, b, i,ylbg,xlbg;
-
+	int x, y, r, g, b, i,xlbg,ylbg;
 
 	for( i = 0; i < MAX_DEATHNOTICES; i++ )
 	{
@@ -366,7 +362,6 @@ int CHudDeathNotice :: Draw( float flTime )
 			}
 		}
 	}
-
 	if ( ( m_showKill || m_killNums || gHUD.m_CHudCFMarks.m_bC4Planted ) && gHUD.m_AnnouncerIcon.hud_killfx->value )
 	{
 		m_killEffectTime            = min( m_killEffectTime, gHUD.m_flTime + KILLEFFECT_DISPLAY_TIME );
@@ -384,23 +379,21 @@ int CHudDeathNotice :: Draw( float flTime )
 						auto &currentTextureCF = gHUD.m_CHudCFMarks.textureManager.GetCurrentTexture( );
 						gHUD.m_CHudCFMarks.CFupdateAnimation( gHUD.m_flTimeDelta );
 
-						float ylbg = ( 25.0f * 0.01f * ScreenHeight ) - 158.0f + 1200 /*y*/ * 0.5f;
-						float xlbg = ( 50.0f * 0.01f * ScreenWidth ) - 158.0f + 200 /*x*/ * 0.5f;
+						float centerX = ScreenWidth * 0.5f;
+						float centerY = ScreenHeight - 180.0f;
 
-						// for revenge and firstblood 
-						float y = ( 25.0f * 0.01f * ScreenHeight ) - 158.0f + 1150 /*y*/ * 0.5f;
-					    float x = ( 50.0f * 0.01f * ScreenWidth ) - 158.0f + 200 /*x*/ * 0.5f;
+						float x = centerX - (currentTextureCF.textureWidth * gHUD.m_CHudCFMarks.scaleBadge * 0.5f);
+						float y = centerY - (currentTextureCF.textureHeight * gHUD.m_CHudCFMarks.scaleBadge * 0.5f);
 
-						xlbg += gHUD.m_CHudCFMarks.shakeOffsetX;
-						ylbg += gHUD.m_CHudCFMarks.shakeOffsetY;
+						float revengeX = centerX - 120.5f;
+						float revengeY = centerY - 100.0f;
 
-						int badgeWidth  = static_cast< int >( currentTextureCF.textureWidth * gHUD.m_CHudCFMarks.scaleBadge );
-						int badgeHeight = static_cast< int >( currentTextureCF.textureHeight * gHUD.m_CHudCFMarks.scaleBadge );
+						x += gHUD.m_CHudCFMarks.shakeOffsetX;
+						y += gHUD.m_CHudCFMarks.shakeOffsetY;
 
-						float centerXlbg = xlbg + 90.0f;
-						float centerYlbg = ylbg + 90.0f;
-						xlbg             = centerXlbg - badgeWidth / 2.0f;
-						ylbg             = centerYlbg - badgeHeight / 2.0f;
+						int badgeWidth = static_cast<int>(currentTextureCF.textureWidth * gHUD.m_CHudCFMarks.scaleBadge);
+						int badgeHeight = static_cast<int>(currentTextureCF.textureHeight * gHUD.m_CHudCFMarks.scaleBadge);
+
 					    if ( m_multiKills == 1 || gHUD.m_CHudCFMarks.m_lastKill || gHUD.m_AnnouncerIcon.m_iPayback )
 					    {
 						    int killMarkType = ( gHUD.m_CHudCFMarks.hud_crossfire_killmark_type->value );
@@ -429,33 +422,35 @@ int CHudDeathNotice :: Draw( float flTime )
 
 							}
 
-
-						    DrawUtils::Draw2DQuad2( x, y, width, height, 0.0f, 0.0f, 1.0f, 1.0f, gHUD.m_CHudCFMarks.markTextures[killMark], 255, 255, 255, 255 );
+							if(gHUD.m_CHudCFMarks.markTextures[killMark] > 0) {
+								DrawUtils::Draw2DQuad2( revengeX, revengeY, width, height, 0.0f, 0.0f, 1.0f, 1.0f, gHUD.m_CHudCFMarks.markTextures[killMark], 255, 255, 255, 255 );
+							}
 					    }
 
-						DrawUtils::Draw2DQuad2( static_cast< int >( xlbg ), static_cast< int >( ylbg ), badgeWidth, badgeHeight, 0.0f, 0.0f, 1.0f, 1.0f, currentTextureCF.textureID, 255, 255, 255, 255 );
+						if(currentTextureCF.textureID > 0) {
+							DrawUtils::Draw2DQuad2( static_cast<int>(x), static_cast<int>(y), badgeWidth, badgeHeight, 0.0f, 0.0f, 1.0f, 1.0f, currentTextureCF.textureID, 255, 255, 255, 255 );
+						}
 					}
 			    }
 				else if ( gHUD.m_AnnouncerIcon.hud_killfx->value == 2 )
 				{
 					if ( gHUD.m_AnnouncerIcon.textureManager.HasTextures( ) )
 					{
-						auto &currentTexture = gHUD.m_AnnouncerIcon.textureManager.GetCurrentTexture( );
+					    auto &currentTexture = gHUD.m_AnnouncerIcon.textureManager.GetCurrentTexture( );
 
+					    y = ( 25.0 * 0.01 * ScreenHeight ) - currentTexture.textureHeight * 0.5;
+					    x = ( 50.0 * 0.01 * ScreenWidth ) - currentTexture.textureWidth * 0.5;
 
-						y = ( 25.0 * 0.01 * ScreenHeight ) - currentTexture.textureHeight * 0.5;
-						x = ( 50.0 * 0.01 * ScreenWidth ) - currentTexture.textureWidth * 0.5;
+					    int ybg = ( 25.0 * 0.01 * ScreenHeight ) - 307 + 360 * 0.5;
+					    int xbg = ( 50.0 * 0.01 * ScreenWidth ) - 248 + 185 * 0.5;
 
-						int ybg = ( 25.0 * 0.01 * ScreenHeight ) - 307 + 360 * 0.5;
-						int xbg = ( 50.0 * 0.01 * ScreenWidth ) - 248 + 185 * 0.5;
+					    ylbg = ( 25.0 * 0.01 * ScreenHeight ) - 94 + 300 * 0.5;
+					    xlbg = ( 50.0 * 0.01 * ScreenWidth ) - 94 - 170 * 0.5;
+					    // TODO: add text on logobg via using VGUI2 or Imgui
+					    DrawUtils::Draw2DQuad2( xbg, ybg, 307 /*widthbg*/, 248 /*heightbg*/, 0.0f, 0.0f, 1.0f, 1.0f, announcerBackground, 255, 255, 255, 255 );
+					    DrawUtils::Draw2DQuad2( xlbg, ylbg, 358, 31, 0.0f, 0.0f, 1.0f, 1.0f, announcerLogobg, 255, 255, 255, 255 );
 
-						ylbg = ( 25.0 * 0.01 * ScreenHeight ) - 94 + 300 * 0.5;
-						xlbg = ( 50.0 * 0.01 * ScreenWidth ) - 94 - 170 * 0.5;
-						// TODO: add text on logobg via using VGUI2 or Imgui
-						DrawUtils::Draw2DQuad2( xbg, ybg, 307 /*widthbg*/, 248 /*heightbg*/, 0.0f, 0.0f, 1.0f, 1.0f, announcerBackground, 255, 255, 255, 255 );
-						DrawUtils::Draw2DQuad2( xlbg, ylbg, 358, 31, 0.0f, 0.0f, 1.0f, 1.0f, announcerLogobg, 255, 255, 255, 255 );
-
-						DrawUtils::Draw2DQuad2( x, y, currentTexture.textureWidth, currentTexture.textureHeight, 0.0f, 0.0f, 1.0f, 1.0f, currentTexture.textureID, 255, 255, 255, currentTexture.alpha * 255 );
+					    DrawUtils::Draw2DQuad2( x, y, currentTexture.textureWidth, currentTexture.textureHeight, 0.0f, 0.0f, 1.0f, 1.0f, currentTexture.textureID, 255, 255, 255, currentTexture.alpha * 255 );
 					}
 				}
 			    else
