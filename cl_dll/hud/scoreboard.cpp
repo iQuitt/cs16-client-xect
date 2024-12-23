@@ -17,21 +17,12 @@
 //
 // implementation of CHudScoreboard class
 //
-#ifdef max
-#undef max
-#endif
-
-#ifdef min
-#undef min
-#endif
-
 #include "hud.h"
 #include "cl_util.h"
 #include "parsemsg.h"
 #include "triangleapi.h"
 #include "com_weapons.h"
 #include "cdll_dll.h"
-#include <algorithm>
 #include <string.h>
 #include <stdio.h>
 #include "draw_util.h"
@@ -780,8 +771,8 @@ int CHudScoreboard :: MsgFunc_TeamInfo( const char *pszName, int iSize, void *pb
 			}
 
 
-			m_iNumTeams = std::max( j, m_iNumTeams );
-
+			if (j > m_iNumTeams)
+			    m_iNumTeams = j;
 			strncpy( g_TeamInfo[j].name, g_PlayerExtraInfo[i].teamname, MAX_TEAM_NAME );
 			g_TeamInfo[j].teamnumber = g_PlayerExtraInfo[i].teamnumber;
 			g_TeamInfo[j].players = 0;
@@ -922,8 +913,10 @@ void CHudScoreboard::DrawNumber( int number, float x, float y, int r, int g, int
 	snprintf( numberStr, sizeof( numberStr ), "%02d", number );
 	int len = strlen( numberStr );
 
-	float scale           = std::min( (float)w / ( digitWidth * len ), (float)h / digitHeight );
-	int scaledDigitWidth  = (int)( digitWidth * scale );
+
+	float widthScale = (float)w / (digitWidth * len);
+	float heightScale = (float)h / digitHeight;
+	float scale = (widthScale < heightScale) ? widthScale : heightScale;	int scaledDigitWidth  = (int)( digitWidth * scale );
 	int scaledDigitHeight = (int)( digitHeight * scale );
 	int scaledSpacing     = (int)( scaledDigitWidth * 0.10f );
 
@@ -1111,8 +1104,11 @@ int CHudScoreboard::DrawTopScoreBoard( float flTime )
 		DrawNumber( m_iTeamAlive_T, 0.465, 0.065, 255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_SMALL_RED], 80, 11 );
 		DrawNumber( m_iTeamAlive_CT, 0.535, 0.065, 255, 255, 255, 255, gHUD.m_Scoreboard.csoTexture[CHudScoreboard::CSO_New_Scoreboard::SB_NUM_SMALL_BLUE], 80, 11 );
 
-		int minutes = std::max( 0, (int)( gHUD.m_Timer.m_iTime + gHUD.m_Timer.m_fStartTime - gHUD.m_flTime ) / 60 );
-		int seconds = std::max( 0, (int)( gHUD.m_Timer.m_iTime + gHUD.m_Timer.m_fStartTime - gHUD.m_flTime ) - ( minutes * 60 ) );
+		int minutes = (int)(gHUD.m_Timer.m_iTime + gHUD.m_Timer.m_fStartTime - gHUD.m_flTime) / 60;
+		if (minutes < 0) minutes = 0;
+		
+		int seconds = (int)(gHUD.m_Timer.m_iTime + gHUD.m_Timer.m_fStartTime - gHUD.m_flTime) - (minutes * 60);
+		if (seconds < 0) seconds = 0;
 		int r = 255, g = 255, b = 255;
 		if ( minutes * 60 + seconds > 20 )
 		{
