@@ -125,6 +125,10 @@ int CHudDeathNotice :: Init( void )
 
 
 #if defined __ANDROID__
+bool IsConnected( int playerIndex )
+{
+	return ( g_PlayerInfoList[playerIndex].name && g_PlayerInfoList[playerIndex].name[0] != 0 );
+}
 int GetTeamAliveCounts_Android( short teamnumber )
 {
 	int count = 0;
@@ -297,7 +301,7 @@ int CHudDeathNotice :: Draw( float flTime )
 
 		#if defined __ANDROID__
 		gHUD.m_Scoreboard.m_iTeamAlive_T  = GetTeamAliveCounts_Android( TEAM_TERRORIST );
-		gHUD.m_Scoreboard.m_iTeamAlive_cT  = GetTeamAliveCounts_Android( TEAM_CT );
+		gHUD.m_Scoreboard.m_iTeamAlive_CT  = GetTeamAliveCounts_Android( TEAM_CT );
 		#else
 		gHUD.m_Scoreboard.m_iTeamAlive_T  = gHUD.m_Scoreboard.GetTeamAliveCounts( TEAM_TERRORIST );
 		gHUD.m_Scoreboard.m_iTeamAlive_CT = gHUD.m_Scoreboard.GetTeamAliveCounts( TEAM_CT );
