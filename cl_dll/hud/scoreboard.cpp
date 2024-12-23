@@ -40,7 +40,15 @@ int g_iUser1;
 int g_iUser2;
 int g_iUser3;
 int g_iTeamNumber;
+#ifdef min
+#undef min
+#endif
+#define min(X, Y)  ((X) < (Y) ? (X) : (Y))
 
+#ifdef max
+#undef max
+#endif
+#define max(X, Y)  ((X) > (Y) ? (X) : (Y))
 
 // X positions
 
