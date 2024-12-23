@@ -5,7 +5,7 @@ platform: x86
 clone_folder: c:\projects\cs16-client
 environment:
   matrix:
-  - project_name: client
+  - project_name: xectclient
     dll_name: client
   - project_name: mainui
     dll_name: menu
