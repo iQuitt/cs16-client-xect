@@ -17,6 +17,13 @@
 //
 // implementation of CHudScoreboard class
 //
+#ifdef max
+#undef max
+#endif
+
+#ifdef min
+#undef min
+#endif
 
 #include "hud.h"
 #include "cl_util.h"
@@ -24,7 +31,7 @@
 #include "triangleapi.h"
 #include "com_weapons.h"
 #include "cdll_dll.h"
-
+#include <algorithm>
 #include <string.h>
 #include <stdio.h>
 #include "draw_util.h"
