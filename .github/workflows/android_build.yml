@@ -45,11 +45,7 @@ jobs:
           cd $GITHUB_WORKSPACE/android
           export ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}
           chmod +x $ANDROID_NDK_HOME/ndk-build
-          $ANDROID_NDK_HOME/ndk-build -j2 \
-            NDK_TOOLCHAIN_VERSION=4.8 \
-            CS16CLIENT_ENABLE_OPENMP=0 \
-            NDK_DEBUG=0 \
-            V=0
+          $ANDROID_NDK_HOME/ndk-build NDK_TOOLCHAIN_VERSION=4.8 NDK_DEBUG=0 V=0 -j5 APP_CFLAGS="-w"
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
