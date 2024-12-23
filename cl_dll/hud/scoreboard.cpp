@@ -17,6 +17,13 @@
 //
 // implementation of CHudScoreboard class
 //
+#ifdef min
+#undef min
+#endif
+#ifdef max
+#undef max
+#endif
+
 
 #include "hud.h"
 #include "cl_util.h"
@@ -40,12 +47,7 @@ int g_iUser1;
 int g_iUser2;
 int g_iUser3;
 int g_iTeamNumber;
-#ifdef min
-#undef min
-#endif
-#ifdef max
-#undef max
-#endif
+
 
 // X positions
 
