@@ -296,8 +296,8 @@ int CHudDeathNotice :: Draw( float flTime )
 		rgDeathNoticeList[i].flDisplayTime = min( rgDeathNoticeList[i].flDisplayTime, flTime + DEATHNOTICE_DISPLAY_TIME );
 
 		#if defined __ANDROID__
-		gHUD.m_Scoreboard.m_iteamAlive_T  = GetTeamAliveCounts_Android( TEAM_TERRORIST );
-		gHUD.m_Scoreboard.m_iteamAlive_cT  = GetTeamAliveCounts_Android( TEAM_CT );
+		gHUD.m_Scoreboard.m_iTeamAlive_T  = GetTeamAliveCounts_Android( TEAM_TERRORIST );
+		gHUD.m_Scoreboard.m_iTeamAlive_cT  = GetTeamAliveCounts_Android( TEAM_CT );
 		#else
 		gHUD.m_Scoreboard.m_iTeamAlive_T  = gHUD.m_Scoreboard.GetTeamAliveCounts( TEAM_TERRORIST );
 		gHUD.m_Scoreboard.m_iTeamAlive_CT = gHUD.m_Scoreboard.GetTeamAliveCounts( TEAM_CT );
