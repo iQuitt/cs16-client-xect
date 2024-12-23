@@ -8,32 +8,53 @@ on:
 
 jobs:
   android:
-   name: Android
-   runs-on: ubuntu-latest
-   steps:
-   - name: Checkout sources
-     uses: actions/checkout@v3
-     with:
+    name: Android
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+        with:
           fetch-depth: 0
           submodules: recursive
-   - uses: actions/checkout@v3
-   - uses: actions/setup-java@v3
-     with:
-      distribution: 'zulu' # See 'Supported distributions' for available options
-      java-version: '8'
-   - uses: nttld/setup-ndk@v1
-     id: setup-ndk
-     with:
-      ndk-version: r10e
-      add-to-path: false
-   - run: |
-           sudo apt-get update
-           sudo apt install build-essential gcc-multilib g++-multilib gcc g++ -y
-           ./build
-     env:
-      ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
-   - name: Upload artifacts
-     uses: actions/upload-artifact@v4
-     with:
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '8'
+
+      - name: Setup NDK
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r10e
+          add-to-path: false
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt install build-essential gcc-multilib g++-multilib gcc g++ -y
+
+      - name: Debug - Show Directory Structure
+        run: |
+          pwd
+          ls -R android
+
+      - name: Build with ndk-build
+        run: |
+          cd $GITHUB_WORKSPACE/android
+          export ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}
+          chmod +x $ANDROID_NDK_HOME/ndk-build
+          $ANDROID_NDK_HOME/ndk-build -j2 \
+            NDK_TOOLCHAIN_VERSION=4.8 \
+            CS16CLIENT_ENABLE_OPENMP=0 \
+            NDK_DEBUG=0 \
+            V=0
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
           name: Android
           path: libs/
