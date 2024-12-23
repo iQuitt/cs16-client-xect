@@ -1,67 +1,39 @@
-name: Android Build
+name: Android CI
+
 on:
   push:
-    branches: [ master ]
+    branches: [ "master" ]
   pull_request:
-    branches: [ master ] 
-  workflow_dispatch:
+    branches: [ "master" ]
+
 jobs:
-  android-build:
-    name: Android Build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v4
-        with:
+  android:
+   name: Android
+   runs-on: ubuntu-latest
+   steps:
+   - name: Checkout sources
+     uses: actions/checkout@v3
+     with:
           fetch-depth: 0
           submodules: recursive
-      
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: '17' 
-      
-      - name: Install Dependencies
-        run: |
-          sudo apt update
-          sudo apt-get install -y \
-            gcc g++ clang \
-            g++-multilib gcc-multilib \
-            build-essential wget unzip
-      
-      - name: Prepare NDK
-        run: |
-          cd android
-          wget -q https://dl.google.com/android/repository/android-ndk-r21e-linux-x86_64.zip
-          unzip -qq android-ndk-r21e-linux-x86_64.zip
-          rm -rf android-ndk-r21e-linux-x86_64.zip
-      
-      - name: Debug - Show Directory Structure
-        run: |
-          pwd
-          ls -R android
-      
-      - name: Build Project
-        run: |
-          cd $GITHUB_WORKSPACE/android
-          export CFLAGS="-fPIC $CFLAGS"
-          export ANDROID_NDK_HOME=$GITHUB_WORKSPACE/android/android-ndk-r21e
-          export CXXFLAGS="-DAPP_STL=gnustl_static -Wno-macro-redefined -fPIC $CXXFLAGS"
-          export NDK_PROJECT_PATH=$GITHUB_WORKSPACE/android
-          
-          # Ensure ndk-build is executable
-          chmod +x $ANDROID_NDK_HOME/ndk-build
-          
-          # Run ndk-build with proper project path
-          $ANDROID_NDK_HOME/ndk-build -j2 \
-            NDK_TOOLCHAIN_VERSION=4.8 \
-            CS16CLIENT_ENABLE_OPENMP=0 \
-            NDK_DEBUG=0 \
-            V=0
-      
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-libs
-          path: android/libs
+   - uses: actions/checkout@v3
+   - uses: actions/setup-java@v3
+     with:
+      distribution: 'zulu' # See 'Supported distributions' for available options
+      java-version: '8'
+   - uses: nttld/setup-ndk@v1
+     id: setup-ndk
+     with:
+      ndk-version: r10e
+      add-to-path: false
+   - run: |
+           sudo apt-get update
+           sudo apt install build-essential gcc-multilib g++-multilib gcc g++ -y
+           ./build
+     env:
+      ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+   - name: Upload artifacts
+     uses: actions/upload-artifact@v4
+     with:
+          name: Android
+          path: libs/
