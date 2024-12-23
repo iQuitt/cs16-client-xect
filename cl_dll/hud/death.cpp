@@ -124,7 +124,24 @@ int CHudDeathNotice :: Init( void )
 #define M_PI 3.14159265358979323846 // matches value in gcc v2 math.h
 
 
+#if defined __ANDROID__
+int GetTeamAliveCounts_Android( short teamnumber )
+{
+	int count = 0;
 
+	for ( int i = 1; i <= MAX_PLAYERS; i++ )
+	{
+		GetPlayerInfo( i, &g_PlayerInfoList[i] );
+		if ( !IsConnected( i ) )
+			continue;
+
+		if ( g_PlayerExtraInfo[i].teamnumber == teamnumber && g_PlayerExtraInfo[i].dead == false )
+			count++;
+	}
+
+	return count;
+}
+#endif
 float randomFloat( float min, float max )
 {
 	return min + static_cast< float >( rand( ) ) / ( static_cast< float >( RAND_MAX / ( max - min ) ) );
@@ -278,9 +295,13 @@ int CHudDeathNotice :: Draw( float flTime )
 
 		rgDeathNoticeList[i].flDisplayTime = min( rgDeathNoticeList[i].flDisplayTime, flTime + DEATHNOTICE_DISPLAY_TIME );
 
-
+		#if defined __ANDROID__
+		gHUD.m_Scoreboard.m_iteamAlive_T  = GetTeamAliveCounts_Android( TEAM_TERRORIST )
+		gHUD.m_Scoreboard.m_iteamAlive_cT  = GetTeamAliveCounts_Android( TEAM_CT )
+		#else
 		gHUD.m_Scoreboard.m_iTeamAlive_T  = gHUD.m_Scoreboard.GetTeamAliveCounts( TEAM_TERRORIST );
 		gHUD.m_Scoreboard.m_iTeamAlive_CT = gHUD.m_Scoreboard.GetTeamAliveCounts( TEAM_CT );
+		#endif
 		if ( gHUD.m_AnnouncerIcon.hud_killfx->value	)
 			gHUD.m_AnnouncerIcon.textureManager.Update( gHUD.m_flTime );
 
