@@ -148,8 +148,11 @@ int CHudSpeedometer::Draw( float time )
 
 	return 0;
 }
-
-void CHudSpeedometer::UpdateSpeed( const float velocity[2] )
+void CHudSpeedometer::UpdateSpeed(const float velocity[2])
 {
-	m_iSpeed = std::round( std::hypot( velocity[0], velocity[1] ) );
+	#if defined(__ANDROID__)
+	    m_iSpeed = (int)round(hypot(velocity[0], velocity[1]));
+	#else
+	    m_iSpeed = std::round(std::hypot(velocity[0], velocity[1]));
+	#endif
 }
