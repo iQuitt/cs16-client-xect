@@ -31,6 +31,7 @@
 float color[3];
 
 DECLARE_MESSAGE( m_DeathNotice, DeathMsg )
+
 static const CHudCFMarks::Marks_Type killMarkStarts[] = {
     CHudCFMarks::CF_MARK_EXPLOSIVE_C4,
     CHudCFMarks::CF_MARK_15TH_EXPLOSIVE_C4,

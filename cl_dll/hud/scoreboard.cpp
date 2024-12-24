@@ -38,8 +38,9 @@ int g_iUser2;
 int g_iUser3;
 int g_iTeamNumber;
 
+const char *mapName;
+bool mapName_zp;
 
-// X positions
 
 int xstart, xend;
 int ystart, yend;
@@ -79,6 +80,7 @@ DECLARE_MESSAGE( m_Scoreboard, TeamInfo )
 DECLARE_MESSAGE( m_Scoreboard, TeamScore )
 DECLARE_MESSAGE( m_Scoreboard, HealthInfo )
 DECLARE_MESSAGE( m_Scoreboard, Account )
+DECLARE_MESSAGE( m_Scoreboard, ZombiePlagueAmmoPacks )
 
 int CHudScoreboard :: Init( void )
 {
@@ -96,7 +98,7 @@ int CHudScoreboard :: Init( void )
 	HOOK_MESSAGE( TeamInfo );
 	HOOK_MESSAGE( HealthInfo );
 	HOOK_MESSAGE( Account );
-
+	HOOK_MESSAGE( ZombiePlagueAmmoPacks );
 	InitHUDData();
 
 	return 1;
@@ -238,7 +240,16 @@ int CHudScoreboard :: DrawScoreboard( float fTime )
 
 	DrawUtils::DrawHudString( NAME_POS_START(), ypos, NAME_POS_END(), ServerName, 255, 140, 0 );
 	DrawUtils::DrawHudStringReverse( HEALTH_POS_END(), ypos, 0, "HP", 255, 140, 0 );
-	DrawUtils::DrawHudStringReverse( MONEY_POS_END(), ypos, MONEY_POS_START(), "Money", 255, 140, 0 );
+	
+	mapName = gEngfuncs.pfnGetLevelName();
+	if(strstr(mapName, "zm_")) {
+		mapName_zp = true;
+		DrawUtils::DrawHudStringReverse( MONEY_POS_END(), ypos, MONEY_POS_START(), "APs", 255, 140, 0 );
+	} else {
+		mapName_zp = false; 
+		DrawUtils::DrawHudStringReverse( MONEY_POS_END(), ypos, MONEY_POS_START(), "Money", 255, 140, 0 );
+	}
+
 	DrawUtils::DrawHudStringReverse( KILLS_POS_END(), ypos, 0, "Score", 255, 140, 0 );
 	DrawUtils::DrawHudStringReverse( DEATHS_POS_END(), ypos, DEATHS_POS_START(), "Deaths", 255, 140, 0 );
 	DrawUtils::DrawHudStringReverse( PING_POS_END(), ypos, PING_POS_START(), "Latency", 255, 140, 0 );
@@ -547,6 +558,7 @@ int CHudScoreboard :: DrawPlayers( float list_slot, int nameoffset, const char *
 	// draw the players, in order,  and restricted to team if set
 	while ( 1 )
 	{
+		mapName = gEngfuncs.pfnGetLevelName( );
 		// Find the top ranking player
 		int highest_frags = -99999;	int lowest_deaths = 99999;
 		int best_player = 0;
@@ -613,13 +625,15 @@ int CHudScoreboard :: DrawPlayers( float list_slot, int nameoffset, const char *
 		{
 			DrawUtils::DrawHudString( WEAPON_POS_END( ), ypos, WEAPON_POS_START( ), g_PlayerExtraInfo[best_player].weaponName, r, g, b );
 		}
-		// draw money
-		if ( g_PlayerExtraInfo[best_player].account != -1 )
-		{
-			char moneyInfo[32];
-			_snprintf( moneyInfo, sizeof( moneyInfo ), "$%i", g_PlayerExtraInfo[best_player].account );
-			DrawUtils::DrawHudStringReverse( MONEY_POS_END( ), ypos, MONEY_POS_START( ), moneyInfo, r, g, b );
+
+		// draw money or ammo packs
+		char moneyInfo[32];
+		if(strstr(mapName, "zm_") && mapName_zp) {
+			_snprintf(moneyInfo, sizeof(moneyInfo), "%i", g_PlayerExtraInfo[best_player].zombieplague_ammopacks);
+		} else {
+			_snprintf(moneyInfo, sizeof(moneyInfo), "$%i", g_PlayerExtraInfo[best_player].account);
 		}
+		DrawUtils::DrawHudStringReverse( MONEY_POS_END(), ypos, MONEY_POS_START(), moneyInfo, r, g, b );
 
 		// draw kills (right to left)
 		DrawUtils::DrawHudNumberString( KILLS_POS_END(), ypos, KILLS_POS_START(), g_PlayerExtraInfo[best_player].frags, r, g, b );
@@ -865,6 +879,15 @@ int CHudScoreboard::MsgFunc_Account( const char *pszName, int iSize, void *pbuf 
 	int i = reader.ReadByte( );
 	long account = reader.ReadLong( );
 	g_PlayerExtraInfo[i].account = account;
+	return 1;
+}
+
+int CHudScoreboard::MsgFunc_ZombiePlagueAmmoPacks(const char* pszName, int iSize, void* pbuf)
+{
+	BufferReader reader( pszName, pbuf, iSize );
+	int id = reader.ReadByte();
+	long ammopacks = reader.ReadLong( );
+	g_PlayerExtraInfo[id].zombieplague_ammopacks = ammopacks;
 	return 1;
 }
 

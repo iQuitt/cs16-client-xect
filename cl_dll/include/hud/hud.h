@@ -351,6 +351,7 @@ public:
 	CHudMsgFunc(TeamScore);
 	CHudMsgFunc(TeamScores);
 	CHudMsgFunc(TeamNames);
+	CHudMsgFunc(ZombiePlagueAmmoPacks);// Only works Xect Zombie Meat 6.2
 
 	int m_iPlayerNum;
 	int m_iNumTeams;
@@ -469,6 +470,7 @@ struct extra_player_info_t
 	short teamnumber;
 	long healthinfo;
 	long account;
+	long zombieplague_ammopacks;//only work XecT Zombie Meat 6.2
 	char teamname[MAX_TEAM_NAME];
 	bool has_c4;
 	bool has_defuse_kit;
