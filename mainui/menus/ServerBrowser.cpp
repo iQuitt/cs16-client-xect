@@ -468,6 +468,7 @@ void CMenuServerBrowser::_Init( void )
 		UI_CreateGame_Menu();
 	});
 
+
 	// TODO: implement!
 	AddButton( L( "View game info" ), L( "Get detail game info" ), PC_VIEW_GAME_INFO, CEventCallback::NoopCb, QMF_GRAYED );
 

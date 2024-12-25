@@ -146,7 +146,8 @@ int CHudScoreboard :: VidInit( void )
 		{
 			if ( !pathVector[i].empty( ) )
 			{
-				textureVector[i] = gRenderAPI.GL_LoadTexture( pathVector[i].c_str( ), NULL, 0, TF_NEAREST | TF_NOPICMIP | TF_NOMIPMAP | TF_CLAMP );
+				//textureVector[i] = gRenderAPI.GL_LoadTexture( pathVector[i].c_str( ), NULL, 0, TF_NEAREST | TF_NOPICMIP | TF_NOMIPMAP | TF_CLAMP );
+				textureVector[i] = gRenderAPI.GL_LoadTexture( pathVector[i].c_str( ), NULL, 0, TF_NEAREST | TF_NOPICMIP | TF_NOMIPMAP | TF_CLAMP | TF_UNCOMPRESSED | TF_HAS_ALPHA );
 				if ( textureVector[i] == 0 )
 				{
 					gEngfuncs.Con_Printf( "^9ERROR: ^7Failed to load texture: %s\n", pathVector[i].c_str( ) );

@@ -67,7 +67,11 @@ public:
 	CBaseFont *GetIFontFromHandle( HFont font );
 
 	int GetEllipsisWide( HFont font ); // cached wide of "..."
-private:
+
+	bool IsFontAvailable( const char *fontName );
+	const char *GetCurrentMenuFont( );
+
+  private:
 	int  GetCharacterWidth( HFont font, int ch );
 	int  GetTextWide( HFont font, const char *text, int size = -1 );
 
@@ -76,6 +80,7 @@ private:
 	CUtlVector<CBaseFont*> m_Fonts;
 
 	friend class CFontBuilder;
+
 };
 
 // lazy to fix code everywhere

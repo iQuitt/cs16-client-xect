@@ -106,7 +106,7 @@ int CHudDeathNotice :: Init( void )
 	gHUD.AddHudElem( this );
 
 	HOOK_MESSAGE( DeathMsg );
-
+	
 	hud_deathnotice_time = CVAR_CREATE( "hud_deathnotice_time", "6", 0 );
 	hud_killicon_display_time = CVAR_CREATE( "hud_killicon_display_time", "1.5", FCVAR_ARCHIVE );
 	hud_killeffect_display_time = CVAR_CREATE( "hud_killeffect_display_time", "3", FCVAR_ARCHIVE );

@@ -12,7 +12,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 */
-
+#define MAINUI_USE_CUSTOM_FONT_RENDER
 #if defined _WIN32 && defined(MAINUI_USE_CUSTOM_FONT_RENDER) && !defined(MAINUI_USE_STB)
 #include <stdarg.h>
 #include <malloc.h>

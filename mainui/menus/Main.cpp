@@ -51,6 +51,8 @@ private:
 
 	void QuitDialog( void *pExtra = NULL );
 	void DisconnectDialogCb();
+	void JoinDiscordCb();
+	void JoinGithubCb();
 
 	CMenuPicButton	console;
 	class CMenuMainBanner : public CMenuBannerBitmap
@@ -65,6 +67,8 @@ private:
 	CMenuPicButton	multiPlayer;
 	CMenuPicButton	customGame;
 	CMenuPicButton	quit;
+	CMenuPicButton  discord;
+	CMenuPicButton  github;
 
 	// quit dialog
 	CMenuYesNoMessageBox dialog;
@@ -112,6 +116,16 @@ void CMenuMain::DisconnectDialogCb()
 	dialog.onPositive.SetCommand( FALSE, "cmd disconnect;endgame disconnect;wait;wait;wait;menu_options;menu_main\n" );
 	dialog.SetMessage( L( "Really disconnect?" ) );
 	dialog.Show();
+}
+#undef ShellExecute// sakamisiniz amk
+void CMenuMain::JoinDiscordCb()
+{
+	EngFuncs::ShellExecute("https://discord.gg/FdHtuNCWX9", NULL, FALSE);
+}
+
+void CMenuMain::JoinGithubCb()
+{
+	EngFuncs::ShellExecute("https://github.com/iQuitt/cs16-client-xect", NULL, FALSE);
 }
 
 /*
@@ -183,6 +197,16 @@ void CMenuMain::_Init( void )
 	quit.iFlags |= QMF_NOTIFY;
 	quit.onReleased = MenuCb( &CMenuMain::QuitDialog );
 
+	discord.SetNameAndStatus( "Join Discord", "Join XecT Discord Server" );
+	discord.SetPicture( NULL );
+	discord.iFlags |= QMF_NOTIFY;
+	discord.onReleased = VoidCb( &CMenuMain::JoinDiscordCb );
+
+	github.SetNameAndStatus( "Github", "XecT Client Repository" );
+	github.SetPicture( NULL );
+	github.iFlags |= QMF_NOTIFY;
+	github.onReleased = VoidCb( &CMenuMain::JoinGithubCb );
+
 	dialog.Link( this );
 
 	AddItem( background );
@@ -191,6 +215,8 @@ void CMenuMain::_Init( void )
 	if ( EngFuncs::GetCvarFloat( "developer" ))
 		AddItem( console );
 
+	AddItem( github );
+	AddItem( discord );
 	AddItem( disconnect );
 	AddItem( resumeGame );
 
@@ -244,15 +270,16 @@ void CMenuMain::_VidInit( void )
 	CMenuPicButton::ClearButtonStack();
 
 	console.pos.x = 24;
-	resumeGame.SetCoord( 24, bCustomGame ? 350 : 400 );
-	disconnect.SetCoord( 24, bCustomGame ? 400 : 450 );
+	github.SetCoord( 24, 200 );
+	discord.SetCoord( 24, 250 );
+	resumeGame.SetCoord( 24, bCustomGame ? 400 : 450 );
+	disconnect.SetCoord( 24, bCustomGame ? 450 : 500 );
 
-	configuration.SetCoord( 24, bCustomGame ? 450 : 500 );
-	multiPlayer.SetCoord( 24, bCustomGame ? 500 : 550 );
+	configuration.SetCoord( 24, bCustomGame ? 500 : 550 );
+	multiPlayer.SetCoord( 24, bCustomGame ? 550 : 600 );
 
-	customGame.SetCoord( 24, 550 );
-
-	quit.SetCoord( 24, 600 );
+	customGame.SetCoord( 24, 600 );
+	quit.SetCoord( 24, 650 );
 }
 
 /*

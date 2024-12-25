@@ -58,7 +58,7 @@ GNU General Public License for more details.
 #define UI_DOWNARROWFOCUS		"gfx/shell/dnarrowf"
 #define UI_DOWNARROWPRESSED		"gfx/shell/dnarrowp"
 
-
+#define MAINUI_USE_CUSTOM_FONT_RENDER
 // =====================================================================
 // Main menu interface
 

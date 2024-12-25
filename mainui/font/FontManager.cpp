@@ -26,12 +26,9 @@ GNU General Public License for more details.
 #elif defined(_WIN32)
 #include "WinAPIFont.h"
 #endif
-
-#include "BitmapFont.h"
-
 #if defined __ANDROID__ || defined CS16CLIENT
-#define DEFAULT_MENUFONT "RobotoCondensed"
-#define DEFAULT_CONFONT  "DroidSans"
+#define DEFAULT_MENUFONT "Trebuchet MS"
+#define DEFAULT_CONFONT  "Tahoma"
 #define DEFAULT_WEIGHT   1000
 #else
 #define DEFAULT_MENUFONT "Trebuchet MS"
@@ -101,6 +98,21 @@ void CFontManager::VidInit( void )
 		prevScale = scale;
 	}
 }
+
+
+bool CFontManager::IsFontAvailable( const char *fontName )
+{
+	HFont testFont = CFontBuilder( fontName, UI_MED_CHAR_HEIGHT, DEFAULT_WEIGHT )
+	                     .Create( );
+
+	if ( testFont != -1 )
+	{
+		DeleteFont( testFont );
+		return true;
+	}
+	return false;
+}
+
 
 void CFontManager::DeleteAllFonts()
 {
@@ -505,7 +517,7 @@ HFont CFontBuilder::Create()
 		delete font;
 
 		// fallback to bitmap font
-		font = new CBitmapFont();
+		font = new CWinAPIFont( );
 
 		// should never fail
 		if( !font->Create( "Bitmap Font", m_iTall, m_iWeight, m_iBlur, m_fBrighten, m_iOutlineSize, m_iScanlineOffset, m_fScanlineScale, m_iFlags ) )

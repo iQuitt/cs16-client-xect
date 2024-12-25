@@ -26,6 +26,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define ART_BANNER			"gfx/shell/head_multi"
 
+
+
 class CMenuMultiplayer : public CMenuFramework
 {
 public:
@@ -57,7 +59,7 @@ void CMenuMultiplayer::_Init( void )
 	AddItem( banner );
 
 	AddButton( L( "Internet game" ), L( "View list of a game internet servers and join the one of your choice" ), PC_INET_GAME, UI_InternetGames_Menu, QMF_NOTIFY );
-	// AddButton( L( "Spectate game" ), L( "Spectate internet games" ), PC_SPECTATE_GAMES, NoopCb, QMF_GRAYED | QMF_NOTIFY );
+	//AddButton( L( "Spectate game" ), L( "Spectate internet games" ), PC_SPECTATE_GAMES, NoopCb, QMF_GRAYED | QMF_NOTIFY );
 	AddButton( L( "LAN game" ), L( "Set up the game on the local area network" ), PC_LAN_GAME, UI_LanGame_Menu, QMF_NOTIFY );
 	AddButton( L( "GameUI_GameMenu_Customize" ), L( "Choose your player name, and select visual options for your character" ), PC_CUSTOMIZE, UI_PlayerSetup_Menu, QMF_NOTIFY );
 	AddButton( L( "Controls" ), L( "Change keyboard and mouse settings" ), PC_CONTROLS, UI_Controls_Menu, QMF_NOTIFY );
