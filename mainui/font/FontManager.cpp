@@ -517,7 +517,7 @@ HFont CFontBuilder::Create()
 		delete font;
 
 		// fallback to bitmap font
-		font = new CWinAPIFont( );
+		font = new CBitmapFont( );
 
 		// should never fail
 		if( !font->Create( "Bitmap Font", m_iTall, m_iWeight, m_iBlur, m_fBrighten, m_iOutlineSize, m_iScanlineOffset, m_fScanlineScale, m_iFlags ) )
