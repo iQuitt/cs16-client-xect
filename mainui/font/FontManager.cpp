@@ -18,6 +18,7 @@ GNU General Public License for more details.
 #include "Utils.h"
 
 #include "BaseFontBackend.h"
+#include "BitmapFont.h"
 
 #if defined(MAINUI_USE_FREETYPE)
 #include "FreeTypeFont.h"
