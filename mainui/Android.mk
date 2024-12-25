@@ -27,6 +27,7 @@ LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/font 				\
 	$(LOCAL_PATH)/miniutl 				\
 	$(LOCAL_PATH)/model				\
+	$(LOCAL_PATH)/mainui				\
 
 LOCAL_SRC_FILES := \
 	controls/Framework.cpp                          \
