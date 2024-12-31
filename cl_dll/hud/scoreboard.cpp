@@ -631,7 +631,7 @@ int CHudScoreboard :: DrawPlayers( float list_slot, int nameoffset, const char *
 		char moneyInfo[32];
 		if(strstr(mapName, "zm_") && mapName_zp) {
 			_snprintf(moneyInfo, sizeof(moneyInfo), "%i", g_PlayerExtraInfo[best_player].zombieplague_ammopacks);
-		} else {
+		} else if(g_PlayerExtraInfo[best_player].account != -1) {
 			_snprintf(moneyInfo, sizeof(moneyInfo), "$%i", g_PlayerExtraInfo[best_player].account);
 		}
 		DrawUtils::DrawHudStringReverse( MONEY_POS_END(), ypos, MONEY_POS_START(), moneyInfo, r, g, b );
